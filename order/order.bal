@@ -100,6 +100,7 @@ public isolated function confirmOrder(int id, string couponCode) returns error? 
         couponCode: couponCode
     });
     _ = check accountingEndpoint->post("", request, targetType = json);
+    notifyRestaurant(_order);
 }
 
 public isolated function getOrderItems(int orderId) returns OrderItem[]|error {
@@ -150,4 +151,8 @@ public isolated function calculateAmount(Order _order) returns decimal {
         amount += <decimal>orderItem.menuItem.price;
     }
     return amount;
+}
+
+public isolated function notifyRestaurant(Order _order) {
+    // Notify restaurant about the order
 }
