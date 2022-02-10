@@ -51,4 +51,14 @@ service on new http:Listener(8082) {
             } 
         };
     }
+
+    isolated resource function get [int id]/confirm(string couponCode) returns http:Ok|error {
+        _ = check confirmOrder(id, couponCode);
+        return <http:Ok> { 
+            body: {
+                message: "Order has been confirmed"
+            } 
+        };
+        
+    }
 }

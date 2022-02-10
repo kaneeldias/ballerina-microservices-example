@@ -10,11 +10,13 @@ configurable string DATABASE = ?;
 configurable string CONSUMER_ENDPOINT = ?;
 configurable string RESTAURANT_ENDPOINT = ?;
 configurable string MENU_ITEM_ENDPOINT = ?;
+configurable string ACCOUNTING_ENDPOINT = ?;
 
 final mysql:Client dbClient = check new(host=HOST, user=USER, password=PASSWORD, port=PORT, database=DATABASE);
 final http:Client consumerEndpoint = check new(CONSUMER_ENDPOINT);
 final http:Client restaurantEndpoint = check new(RESTAURANT_ENDPOINT);
 final http:Client menuItemEndpoint = check new(MENU_ITEM_ENDPOINT);
+final http:Client accountingEndpoint = check new(ACCOUNTING_ENDPOINT);
 
 public type Order record {|
     int id?;
@@ -71,7 +73,6 @@ public isolated function createOrderItem(OrderItem orderItem, int orderId) retur
     return generatedOrderItemId;
 }
 
-
 public isolated function getOrder(int id) returns Order|error {
     Order result = check dbClient->queryRow(`SELECT id, consumerId AS 'consumer.id', restaurantId AS 'restaurant.id' FROM Orders WHERE id = ${id}`);
     return {
@@ -90,13 +91,24 @@ public isolated function removeOrderItem(int id) returns error? {
     _ = check dbClient->execute(`DELETE FROM OrderItems WHERE id = ${id}`);
 }
 
+public isolated function confirmOrder(int id, string couponCode) returns error? {
+    Order _order = check getOrder(id);
+    http:Request request = new;
+    request.setJsonPayload({
+        _order: _order.toJson(),
+        amount: calculateAmount(_order),
+        couponCode: couponCode
+    });
+    _ = check accountingEndpoint->post("", request, targetType = json);
+}
+
 public isolated function getOrderItems(int orderId) returns OrderItem[]|error {
     OrderItem[] orderItems = [];
     stream<OrderItem, error?> resultStream = dbClient->query(`SELECT id, menuItemId AS 'menuItem.id', quantity FROM OrderItems WHERE orderId = ${orderId}`);
     check from OrderItem orderItem in resultStream
         do {
             orderItems.push({
-                id: orderId,
+                id: <int>orderItem.id,
                 menuItem: check getMenuItemDetails(orderItem.menuItem.id),
                 quantity: orderItem.quantity
             });
@@ -129,4 +141,13 @@ public isolated function getMenuItemDetails(int menuItemId) returns MenuItem|err
         name: <string>menuItem.name,
         price: <decimal>menuItem.price
     };
+}
+
+public isolated function calculateAmount(Order _order) returns decimal {
+    decimal amount = 0;
+    OrderItem[] orderItems = <OrderItem[]>_order.orderItems;
+    foreach OrderItem orderItem in orderItems {
+        amount += <decimal>orderItem.menuItem.price;
+    }
+    return amount;
 }
