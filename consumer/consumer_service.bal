@@ -55,8 +55,6 @@ public type ConsumerInternalError record {|
     |} body;
 |}; 
 
-
-
 @http:ServiceConfig { cors: { allowOrigins: ["*"] } }
 service /consumer on new http:Listener(8080) {
 
