@@ -60,6 +60,7 @@ type ConsumerUpdated record {|
 # Represents an unexpected error
 type ConsumerInternalError record {|
    *http:InternalServerError;
+   # Error payload
     record {| 
         string message;
     |} body;
@@ -70,8 +71,9 @@ service /consumer on new http:Listener(8080) {
 
     # Resource function to create a new consumer
     #
-    # + request - Details of the consumer to be created.
-    # + return - `ConsumerCreated` if the request was sucessful, or a `ConsumerInternalError` if the request was unsuccessful
+    # + request - Details of the consumer to be created
+    # + return - `ConsumerCreated` if the consumer was sucessfully created.
+    #            `ConsumerInternalError` if an unexpected error occurs.
     isolated resource function post .(@http:Payload ConsumerRequest request) returns ConsumerCreated|ConsumerInternalError {
         do {
             Consumer generatedConsumer = check createConsumer(request.name, request.address, request.email);
@@ -94,7 +96,7 @@ service /consumer on new http:Listener(8080) {
     # + id - The ID of the requested consumer
     # + return - `ConsumerView` if the details are successfully fetched.
     #            `ConsumerNotFound` if a consumer with the provided ID was not found.
-    #            `ConsumerInternalError` if the request was not successful
+    #            `ConsumerInternalError` if an unexpected error occurs
     isolated resource function get [int id]() returns ConsumerView|ConsumerNotFound|ConsumerInternalError {
         do {
             Consumer consumer = check getConsumer(id);
@@ -117,7 +119,7 @@ service /consumer on new http:Listener(8080) {
     # + id - The ID of the consumer to be deleted
     # + return - `ConsumerDeleted` if the consumer was successfully deleted.
     #            `ConsumerNotFound` if a consumer with the provided ID was not found.
-    #            `ConsumerInternalError` if the request was not successful
+    #            `ConsumerInternalError` if an unexpected error occurs
     isolated resource function delete [int id]() returns ConsumerDeleted|ConsumerNotFound|ConsumerInternalError {
         do {
             Consumer consumer = check deleteConsumer(id);
@@ -133,9 +135,9 @@ service /consumer on new http:Listener(8080) {
     # Resource function to update the details of the consumer
     #
     # + id - The ID of the consumer to be updated  
-    # + request - Details of the consumer to be update.
+    # + request - Details of the consumer to be updated
     # + return - `ConsumerUpdated` if the consumer was successfully updated.
-    #            `ConsumerInternalError` if the request was not successful
+    #            `ConsumerInternalError` if an unexpected error occurs
     isolated resource function put [int id](@http:Payload ConsumerRequest request) returns ConsumerUpdated|ConsumerInternalError {
         do {
             Consumer updatedConsumer = check updateConsumer(id, request.name, request.address, request.email);
@@ -152,7 +154,7 @@ service /consumer on new http:Listener(8080) {
         
 }
 
-# Returns the links to a given resource to be used in the HTTP header
+# Returns the HTTP links related to a given consumer
 #
 # + consumerId - The ID of the consumer
 # + return - An array of links

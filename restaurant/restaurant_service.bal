@@ -213,8 +213,14 @@ public type RestaurantInternalError record {|
 |}; 
 
 
+# Description
 service on new http:Listener(8081) {
 
+    # Resource function to create a new restaurant
+    #
+    # + request - Details of the restaurant to be created. This can also contain information regarding the menus under the restaurant
+    # + return - `RestaurantCreated` if the restaurant was successfully created.
+    #            `RestaurantInternalError` if an unexpected error occurs
     isolated resource function post restaurant(@http:Payload CreateRestaurantRequest request) returns RestaurantCreated|RestaurantInternalError {
         do {
             transaction {
@@ -248,6 +254,12 @@ service on new http:Listener(8081) {
         }
     }
 
+    # Resource function to create a new menu under a restaurant
+    #
+    # + restaurantId - The ID of the restaurant under which the menu should be added  
+    # + request - Details of the menu to be created. This can also contain information regarding the menu items under the menu
+    # + return - `MenuCreated` if the menu was sucessfully created.
+    #            `RestaurantInternalError` if an unexpected error occurs
     isolated resource function post restaurant/[int restaurantId]/menu(@http:Payload CreateMenuRequest request) returns MenuCreated|RestaurantInternalError {
         do {
             transaction {
@@ -275,6 +287,13 @@ service on new http:Listener(8081) {
         }
     }
 
+    # Resource function to create a new menu item under a menu
+    #
+    # + restaurantId - The ID of the restaurnt under which the menu item should be created  
+    # + menuId - The ID of the menu under which the menu item should be created  
+    # + request - Details of the menu item to be created
+    # + return - `MenuItemCreated` if the menu item was sucessfully created.
+    #            `RestaurantInternalError` if an unexpected error occurs
     isolated resource function post restaurant/[int restaurantId]/menu/[int menuId]/item(@http:Payload CreateMenuItemRequest request) returns MenuItemCreated|RestaurantInternalError {
         do {
             MenuItem generatedMenuItem = check createMenuItem(request.name, request.price, menuId);
@@ -292,6 +311,12 @@ service on new http:Listener(8081) {
         }
     }
 
+    # Resource function to fetch the details of a restaurant
+    #
+    # + restaurantId - The ID of the requested restaurant
+    # + return - `RestaurantView` if the details are successfully fetched.
+    #            `RestaurantNotFound` if a restaurant with the provided ID was not found.
+    #            `RestaurantInternalError` if an unexpected error occurs
     isolated resource function get restaurant/[int restaurantId]() returns RestaurantView|RestaurantNotFound|RestaurantInternalError {
         do {
             Restaurant restaurant = check getRestaurant(restaurantId);
@@ -309,6 +334,13 @@ service on new http:Listener(8081) {
         } 
     }
 
+    # Resource function to fetch the details of a menu
+    #
+    # + restaurantId - The ID of the restaurant to which the menu belongs
+    # + menuId - The ID of the requested menu
+    # + return - `MenuView` if the details are successfully fetched.
+    #            `MenuNotFound` if a menu with the provided ID was not found.
+    #            `RestaurantInternalError` if an unexpected error occurs
     isolated resource function get restaurant/[int restaurantId]/menu/[int menuId]() returns MenuView|MenuNotFound|RestaurantInternalError {
         do {
             Menu menu = check getMenu(menuId);
@@ -326,6 +358,14 @@ service on new http:Listener(8081) {
         } 
     }
 
+    # Resource function to fetch the details of a menu
+    #
+    # + restaurantId - The ID of the restaurant to which the menu item belongs
+    # + menuId - The ID of the menu to which the menu item belongs
+    # + menuItemId - The ID of the requested menu item
+    # + return - `MenuItemView` if the details are successfully fetched.
+    #            `MenuItemNotFound` if a menu item with the provided ID was not found.
+    #            `RestaurantInternalError` if an unexpected error occurs
     isolated resource function get restaurant/[int restaurantId]/menu/[int menuId]/item/[int menuItemId]() returns MenuItemView|MenuItemNotFound|RestaurantInternalError {
         do {
             MenuItem menuItem = check getMenuItem(menuItemId);
@@ -343,6 +383,12 @@ service on new http:Listener(8081) {
         } 
     }
 
+    # Resource function to delete a consumer. This would also delete all menus and menu items under the restaurant
+    #
+    # + restaurantId - The ID of the restaurant to be deleted
+    # + return - `RestaurantDeleted` if the restaurant was successfully deleted.
+    #            `RestaurantNotFound` if a restaurant with the provided ID was not found.
+    #            `RestaurantInternalError` if an unexpected error occurs
     isolated resource function delete restaurant/[int restaurantId]() returns RestaurantDeleted|RestaurantNotFound|RestaurantInternalError {
         do {
             Restaurant restaurant = check deleteRestaurant(restaurantId);
@@ -355,6 +401,13 @@ service on new http:Listener(8081) {
         }   
     }
 
+    # Resource function to delete a menu. This would also delete all menu items under the menu
+    #
+    # + restaurantId - The ID of the restaurant to which the menu belongs
+    # + menuId - The ID of the menu to be deleted
+    # + return - `MenuDeleted` if the menu was successfully deleted.
+    #            `MenuNotFound` if a menu with the provided ID was not found.
+    #            `RestaurantInternalError` if an unexpected error occurs
     isolated resource function delete restaurant/[int restaurantId]/menu/[int menuId]() returns MenuDeleted|MenuNotFound|RestaurantInternalError {
         do {
             Menu menu = check deleteMenu(menuId);
@@ -367,6 +420,14 @@ service on new http:Listener(8081) {
         }
     }
 
+    # Resource function to delete a menu item
+    #
+    # + restaurantId - The ID of the restaurant to which the menu item belongs
+    # + menuId - The ID of the menu to which the menu item belongs
+    # + menuItemId - The ID of the menu item to be deleted
+    # + return - `MenuItemDeleted` if the menu item was successfully deleted.
+    #            `MenuItemNotFound` if a menu item with the provided ID was not found.
+    #            `RestaurantInternalError` if an unexpected error occurs
     isolated resource function delete restaurant/[int restaurantId]/menu/[int menuId]/menuItem/[int menuItemId]() returns MenuItemDeleted|MenuItemNotFound|RestaurantInternalError {
          do {
             MenuItem menuitem = check deleteMenuItem(menuItemId);
@@ -379,6 +440,13 @@ service on new http:Listener(8081) {
         }
     }
 
+    # Resource function to update the details of a restaurant
+    #
+    # + restaurantId - The ID of the restaurant to be updated  
+    # + request - Details of the restaurant to be updated
+    # + return - `RestaurantUpdated` if the restaurant was successfully updated.
+    #            `RestaurantNotFound` if a restaurant with the provided ID was not found.
+    #            `RestaurantInternalError` if an unexpected error occurs
     isolated resource function put restaurant/[int restaurantId](@http:Payload UpdateRestaurantRequest request) returns RestaurantUpdated|RestaurantNotFound|RestaurantInternalError {
         do {
             Restaurant updatedRestaurant = check updateRestaurant(restaurantId, request.name, request.address);
@@ -396,6 +464,14 @@ service on new http:Listener(8081) {
         }       
     }
 
+    # Resource function to update the details of a menu
+    #
+    # + restaurantId - The ID of the restaurant to which the menu belongs
+    # + menuId - The ID of the menu to be updated
+    # + request - Details of the menu to be updated
+    # + return - `MenuUpdated` if the menu was successfully updated.
+    #            `MenuNotFound` if a menu with the provided ID was not found.
+    #            `RestaurantInternalError` if an unexpected error occurs
     isolated resource function put restaurant/[int restaurantId]/menu/[int menuId](@http:Payload UpdateMenuRequest request) returns MenuUpdated|MenuNotFound|RestaurantInternalError {
         do {
             Menu updatedMenu = check updateMenu(menuId, request.name);
@@ -413,6 +489,15 @@ service on new http:Listener(8081) {
         }  
     }
 
+    # Resource function to update the details of a menu iten
+    #
+    # + restaurantId - The ID of the restaurant to which the menu  itme belongs
+    # + menuId - The ID of the menu to which the menu item belongs
+    # + menuItemId - The ID of the menu item to be deleted  
+    # + request - Details of the menu item to be updated
+    # + return - `MenuItemUpdated` if the menu was successfully updated.
+    #            `MenuItemNotFound` if a menu with the provided ID was not found.
+    #            `RestaurantInternalError` if an unexpected error occurs
     isolated resource function put restaurant/[int restaurantId]/menu/[int menuId]/item/[int menuItemId](@http:Payload UpdateMenuItemRequest request) returns MenuItemUpdated|MenuItemNotFound|RestaurantInternalError {
         do {
             MenuItem updatedMenuItem = check updateMenuItem(menuItemId, request.name, request.price);
@@ -432,6 +517,10 @@ service on new http:Listener(8081) {
 
 }
 
+# Returns the HTTP links related to a given restaurant
+#
+# + restaurantId - The ID of the restaurant
+# + return - An array of links
 isolated function getRestaurantLinks(int restaurantId) returns http:Link[] {
     return [
         {
@@ -452,6 +541,11 @@ isolated function getRestaurantLinks(int restaurantId) returns http:Link[] {
     ];
 }
 
+# Returns the HTTP links related to a given menu
+#
+# + menuId - THe ID of the menu  
+# + parentRestaurantId - The ID of the restaurant to which the menu belongs
+# + return - An array of links
 isolated function getMenuLinks(int menuId, int parentRestaurantId) returns http:Link[] {
     return [
         {
@@ -477,6 +571,12 @@ isolated function getMenuLinks(int menuId, int parentRestaurantId) returns http:
     ];
 }
 
+# Returns the HTTP links related to a given menu item
+#
+# + menuItemId - The ID of the menu item  
+# + parentMenuId - The ID of the menu to which the menu item belongs  
+# + parentRestaurantId - The ID of the restaurant to which the menu item belongs
+# + return - An array of links
 isolated function getMenuItemLinks(int menuItemId, int parentMenuId, int parentRestaurantId) returns http:Link[] {
     return [
         {
