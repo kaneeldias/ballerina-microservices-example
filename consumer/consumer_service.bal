@@ -2,7 +2,7 @@ import ballerina/http;
 import ballerina/sql;
 
 # Request body to be used when creating and updating a consumer
-public type ConsumerRequest record {
+type ConsumerRequest record {
     # Name of the consumer
     string name;
     # Address of the consumer
@@ -12,42 +12,52 @@ public type ConsumerRequest record {
 };
 
 # Response for a successful consumer creation
-public type ConsumerCreated record {|
+type ConsumerCreated record {|
     *http:Created;
-    *http:Links;
-    # Details of the created consumer
-    Consumer body;
+    # Details of the created consumer along with the HTTP links to manage it
+    record {|
+        *Consumer;
+        *http:Links;
+    |} body;
 |};
 
 # Response for a successful consumer fetch
-public type ConsumerView record {|
-    *http:Links;
-    # Details of the requested consumer
-    Consumer body;
+type ConsumerView record {|
+    *http:Ok;
+    # Details of the requested consumer along with the HTTP links to manage it
+    record {|
+        *Consumer;
+        *http:Links;
+    |} body;
 |};
 
 # Error response for when the requested consumer cannot be found
-public type ConsumerNotFound record {|
+type ConsumerNotFound record {|
     *http:NotFound;
+    readonly record {} body = { 
+        "message": "Consumer cannot be found." 
+    };
 |};
 
 # Response for a successful consumer deletion
-public type ConsumerDeleted record {|
+type ConsumerDeleted record {|
     *http:Ok;
     # Details of the deleted consumer
     Consumer body;
 |};
 
 # Response for a successful consumer update
-public type ConsumerUpdated record {|
+type ConsumerUpdated record {|
     *http:Ok;
-    *http:Links;
-    # Updated details of the consumer
-    Consumer body;
+    # Details of the updated consumer along with the HTTP links to manage it
+    record {|
+        *Consumer;
+        *http:Links;
+    |} body;
 |};
 
 # Represents an unexpected error
-public type ConsumerInternalError record {|
+type ConsumerInternalError record {|
    *http:InternalServerError;
    # Error payload
     record {| 
@@ -69,8 +79,10 @@ service /consumer on new http:Listener(8080) {
                 headers: {
                     location: "/consumer/" + generatedConsumer.id.toString()
                 },
-                body: generatedConsumer,
-                links: getLinks(generatedConsumer.id)
+                body: {
+                    ...generatedConsumer,
+                    links: getLinks(generatedConsumer.id)
+                }
             };
         } on fail error e {
             return <ConsumerInternalError>{ body: { message: e.toString() }};
@@ -87,8 +99,10 @@ service /consumer on new http:Listener(8080) {
         do {
             Consumer consumer = check getConsumer(id);
             return <ConsumerView>{ 
-                body: consumer,
-                links: getLinks(consumer.id)
+                body: {
+                    ...consumer,
+                    links: getLinks(consumer.id)
+                }
             };
         } on fail error e {
             if e is sql:NoRowsError {
@@ -126,8 +140,10 @@ service /consumer on new http:Listener(8080) {
         do {
             Consumer updatedConsumer = check updateConsumer(id, request.name, request.address, request.email);
             return <ConsumerUpdated>{ 
-                body: updatedConsumer,
-                links: getLinks(updatedConsumer.id)
+                body: {
+                    ...updatedConsumer,
+                    links: getLinks(updatedConsumer.id)
+                }
             };
         } on fail error e {
             return <ConsumerInternalError>{ body: { message: e.toString() }};
