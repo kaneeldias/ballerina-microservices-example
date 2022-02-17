@@ -1,22 +1,35 @@
 import ballerinax/mysql;
 import ballerina/sql;
 
+# Represents a reastaurant
 public type Restaurant record {|
-    int id?;
+    # The ID of the restaurant
+    int id;
+    # The name of the restaurant
     string name;
+    # The address of the restaurant
     string address;
-    Menu[] menus?;
+    # The menus offered by the restaurant
+    Menu[] menus;
 |};
 
+# Represents a menu
 public type Menu record {|
-    int id?;
+    # The ID of the menu
+    int id;
+    # The name of the menu
     string name;
-    MenuItem[] items?;
+    # The items included in the menu
+    MenuItem[] items;
 |};
 
+# Represents a menu item
 public type MenuItem record {|
-    int id?;
+    # The ID of the menu item
+    int id;
+    # The name of the menu item
     string name;
+    # The price of the menu item
     decimal price;
 |};
 
@@ -28,72 +41,99 @@ configurable string DATABASE = ?;
 
 final mysql:Client dbClient = check new(host=HOST, user=USER, password=PASSWORD, port=PORT, database="Restaurant");
 
-isolated function createRestaurant(Restaurant restaurant) returns Restaurant|error {
-    sql:ExecutionResult result = check dbClient->execute(`INSERT INTO Restaurants (name, address) VALUES (${restaurant.name}, ${restaurant.address})`);
+# Creates a new restaurant. This method does not manage the creation of menus under the restaurant.
+#
+# + name - The name of the restaurant  
+# + address - The address of the restaurant
+# + return - The details of the restaurant if the creation was successful. An error if unsuccessful
+isolated function createRestaurant(string name, string address) returns Restaurant|error {
+    sql:ExecutionResult result = check dbClient->execute(`INSERT INTO Restaurants (name, address) VALUES (${name}, ${address})`);
     int|string? generatedRestaurantId = result.lastInsertId;
     if generatedRestaurantId is string? {
         return error("Unable to retrieve generated ID of restaurant.");
     }
-    restaurant.id = generatedRestaurantId;
 
-    Menu[]? menus = restaurant.menus;
-    if menus is Menu[] {
-        foreach Menu menu in menus {
-            Menu generatedMenu = check createMenu(menu, generatedRestaurantId);
-            menu.id = <int>generatedMenu.id;
-        }
-    }
-
-    return restaurant;
+    return <Restaurant>{
+        id: generatedRestaurantId,
+        name: name,
+        address: address,
+        menus: []
+    };
 }
 
-isolated function createMenu(Menu menu, int restaurantId) returns Menu|error {
-    sql:ExecutionResult result = check dbClient->execute(`INSERT INTO Menus (name, restaurantId) VALUES (${menu.name}, ${restaurantId})`);
+# Creates a new menu under a particular restaurant. This method does not manage the creation of menu items under the menu.
+#
+# + name - The name of the menu  
+# + restaurantId - The ID of the restaurant under which the menu should be created
+# + return - The details of the menu if the creation was successful. An error if unsuccessful
+isolated function createMenu(string name, int restaurantId) returns Menu|error {
+    sql:ExecutionResult result = check dbClient->execute(`INSERT INTO Menus (name, restaurantId) VALUES (${name}, ${restaurantId})`);
     int|string? generatedMenuId = result.lastInsertId;
     if generatedMenuId is string? {
         return error("Unable to retrieve ID of menu.");
     }
-    menu.id = generatedMenuId;
 
-    MenuItem[]? menuItems = menu.items;
-    if menuItems is MenuItem[] {
-        foreach MenuItem menuItem in menuItems {
-            MenuItem generatedMenuItem = check createMenuItem(menuItem, generatedMenuId);
-            menuItem.id = <int>generatedMenuItem.id;
-        }
-    }
-
-    return menu;
+    return <Menu>{
+        id: generatedMenuId,
+        name: name,
+        items: []
+    };
 }
 
-isolated function createMenuItem(MenuItem menuItem, int menuId) returns MenuItem|error {
-    sql:ExecutionResult result = check dbClient->execute(`INSERT INTO MenuItems (name, price, menuId) VALUES (${menuItem.name}, ${menuItem.price}, ${menuId})`);
+# Creates a new menu item under a particular menu.
+#
+# + name - The name of the menu item  
+# + price - The price of the menu item  
+# + menuId - The ID of the menu under which the menu item should be created
+# + return - The details of the menu item if the creation was successful. An error if unsuccessful
+isolated function createMenuItem(string name, decimal price, int menuId) returns MenuItem|error {
+    sql:ExecutionResult result = check dbClient->execute(`INSERT INTO MenuItems (name, price, menuId) VALUES (${name}, ${price}, ${menuId})`);
     int|string? generatedMenuItemId = result.lastInsertId;
     if generatedMenuItemId is string? {
         return error("Unable to retrieve ID of menu item.");
     }
-    menuItem.id = generatedMenuItemId;
-    return menuItem;
+
+    return <MenuItem>{
+        id: generatedMenuItemId,
+        name: name,
+        price: price
+    };
 }
 
+# Retrieves the details of a restaurant
+#
+# + restaurantId - The ID of the requested restaurant
+# + return - The details of the restaurant if the retrieval was successful. An error if unsuccessful
 isolated function getRestaurant(int restaurantId) returns Restaurant|error {
     Restaurant restaurant = check dbClient->queryRow(`SELECT id, name, address FROM Restaurants WHERE id = ${restaurantId}`);
     restaurant.menus = check getMenus(restaurantId);
     return restaurant;
 }
 
+# Retrieves the details of a menu
+#
+# + menuId - The ID of the requested menu
+# + return - The details of the menu if the retrieval was successful. An error if unsuccessful
 isolated function getMenu(int menuId) returns Menu|error {
     Menu menu = check dbClient->queryRow(`SELECT id, name, address FROM Menus WHERE id = ${menuId}`);
     menu.items = check getMenuItems(menuId);
     return menu;
 }
 
+# Retrieves the details of a menu item
+#
+# + menuItemId - The ID of the requested menu item
+# + return - The details of the menu item if the retrieval was successful. An error if unsuccessful
 isolated function getMenuItem(int menuItemId) returns MenuItem|error {
     MenuItem menuItem = check dbClient->queryRow(`SELECT id, name, price FROM MenuItems WHERE id = ${menuItemId}`);
     return menuItem;
 }
 
-isolated function getMenus(int? restaurantId) returns Menu[]|error {
+# Retrieves the details of all the menus listed under a restaurant as well as the menu items included within them
+#
+# + restaurantId - The ID of the restaurant for which the menus are required
+# + return - An array containing the details of all the menus under the provided restaurant
+isolated function getMenus(int restaurantId) returns Menu[]|error {
     Menu[] menus = [];
     stream<Menu, error?> resultStream = dbClient->query(`SELECT id, name FROM Menus WHERE restaurantId = ${restaurantId}`);
     check from Menu menu in resultStream
@@ -104,6 +144,10 @@ isolated function getMenus(int? restaurantId) returns Menu[]|error {
     return menus;
 }
 
+# Retrieves the details of all the menu items listed under a menu
+#
+# + menuId - The ID of the menu for which the menu items are required
+# + return - An array containing the details of all the menu items under the provided menu
 isolated function getMenuItems(int? menuId) returns MenuItem[]|error {
     MenuItem[] menuItems = [];
     stream<MenuItem, error?> resultStream = dbClient->query(`SELECT id, name, price FROM MenuItems WHERE menuId = ${menuId}`);
@@ -114,32 +158,64 @@ isolated function getMenuItems(int? menuId) returns MenuItem[]|error {
     return menuItems;
 }
 
-isolated function deleteRestaurant(int restaurantId) returns error? {
+# Deletes a restauarant
+#
+# + restaurantId - The ID of the restaurant to be deleted
+# + return - The details of the deleted restaurant if the deletion was successful. An error if unsuccessful 
+isolated function deleteRestaurant(int restaurantId) returns Restaurant|error {
+    Restaurant restaurant = check getRestaurant(restaurantId);
     _ = check dbClient->execute(`DELETE FROM Restaurants WHERE id = ${restaurantId}`);
-}
-
-isolated function deleteMenu(int menuId) returns error? {
-    _ = check dbClient->execute(`DELETE FROM Menus WHERE id = ${menuId}`);
-}
-
-isolated function deleteMenuItem(int menuItem) returns error? {
-    _ = check dbClient->execute(`DELETE FROM MenuItems WHERE id = ${menuItem}`);
-}
-
-isolated function updateRestaurant(Restaurant restaurant, int id) returns Restaurant|error {
-    _ = check dbClient->execute(`UPDATE Restaurants SET name=${restaurant.name}, address=${restaurant.address} WHERE id = ${id}`);
-    restaurant.id = id;
     return restaurant;
 }
 
-isolated function updateMenu(Menu menu, int id) returns Menu|error {
-    _ = check dbClient->execute(`UPDATE Menus SET name=${menu.name} WHERE id = ${id}`);
-    menu.id = id;
+# Deletes a menu
+#
+# + menuId - The ID of the menu to be deleted
+# + return - The details of the deleted menu if the deletion was successful. An error if unsuccessful 
+isolated function deleteMenu(int menuId) returns Menu|error {
+    Menu menu = check getMenu(menuId);
+    _ = check dbClient->execute(`DELETE FROM Menus WHERE id = ${menuId}`);
     return menu;
 }
 
-isolated function updateMenuItem(MenuItem menuItem, int id) returns MenuItem|error {
-    _ = check dbClient->execute(`UPDATE MenuItems SET name=${menuItem.name}, price=${menuItem.price} WHERE id = ${id}`);
-    menuItem.id = id;
+# Deletes a menu item
+#
+# + menuItemId - The ID of the menu item to be deleted
+# + return - The details of the deleted menu item if the deletion was successful. An error if unsuccessful 
+isolated function deleteMenuItem(int menuItemId) returns MenuItem|error {
+    MenuItem menuItem = check getMenuItem(menuItemId);
+    _ = check dbClient->execute(`DELETE FROM MenuItems WHERE id = ${menuItem}`);
     return menuItem;
+}
+
+# Updates the details of a restaurant
+#
+# + restaurantId - The ID of the restaurant to be updated  
+# + name - The updated name of the restaurant  
+# + address - The updated address of the restaurant  
+# + return - The updated details of the restaurant if the update was successful. An error if unsuccessful
+isolated function updateRestaurant(int restaurantId, string name, string address) returns Restaurant|error {
+    _ = check dbClient->execute(`UPDATE Restaurants SET name=${name}, address=${address} WHERE id = ${restaurantId}`);
+    return getRestaurant(restaurantId);
+}
+
+# Updates the details of a menu
+#
+# + menuId - The ID of the menu to be updated  
+# + name - The updated name of the menu
+# + return - The updated details of the menu if the update was successful. An error if unsuccessful
+isolated function updateMenu(int menuId, string name) returns Menu|error {
+    _ = check dbClient->execute(`UPDATE Menus SET name=${name} WHERE id = ${menuId}`);
+    return getMenu(menuId);
+}
+
+# Updates the details of a menu item
+#
+# + menuItemId - The ID of the menu item to be updated  
+# + name - The updated name of the menu item
+# + price - The updated price of the menu item
+# + return - The updated details of the menu item if the update was successful. An error if unsuccessful
+isolated function updateMenuItem(int menuItemId, string name, decimal price) returns MenuItem|error {
+    _ = check dbClient->execute(`UPDATE MenuItems SET name=${name}, price=${price} WHERE id = ${menuItemId}`);
+    return getMenuItem(menuItemId);
 }
