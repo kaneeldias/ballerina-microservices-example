@@ -1,156 +1,212 @@
 import ballerina/http;
 import ballerina/sql;
 
+# Request body to be used when creating a restaurant
 type CreateRestaurantRequest record {|
+    # The name of the restaurant
     string name;
+    # The address of the restauarant
     string address;
+    # The menus offered by the restaurant
     CreateRestaurantRequestMenu[] menus;
 |};
 
+# Representation for a menu to be used when creating a restaurant
 type CreateRestaurantRequestMenu record {|
+    # The name of the menue
     string name;
+    # The items contained within the menu
     CreateMenuRequestMenuItem[] items;
 |};
 
+# Representation for a menu item to be used when creating a menu
 type CreateMenuRequestMenuItem record {|
+    # The name of the menu item
     string name;
+    # The price of the menu item
     decimal price;
 |};
 
-type UpdateRestaurantRequest record {|
+# Request body to be used when creating a menu
+type CreateMenuRequest record {|
+    # The name of the menu
     string name;
+    # The items contained within the menu
+    CreateMenuRequestMenuItem[] menuItems;
+|};
+
+# Request body to be used when creating a menu item
+type CreateMenuItemRequest record {|
+    # The name of the menu item
+    string name;
+    # The price of the menu item
+    decimal price;
+|};
+
+# The request body to be used when updating the details of a restaurant
+type UpdateRestaurantRequest record {|
+    # The updated name of the restaurant
+    string name;
+    # The updated address of the restaurant
     string address;
 |};
 
+# The request body to be used when updating the details of a menu
 type UpdateMenuRequest record {|
+    # The updated name of the menu
     string name;
 |};
 
+# The request body to be used when updating the details of a menu item
 type UpdateMenuItemRequest record {|
+    # The updated name of the menu item
     string name;
+    # The price of the menu item
     decimal price;
 |};
 
+# Response for a successful restaurant creation
 type RestaurantCreated record {|
     *http:Created;
+    # Details of the created restaurant along with the HTTP links to manage it
     record {|
         *Restaurant;
         *http:Links;
     |} body;
 |};
 
+# Response for a successful menu creation
 type MenuCreated record {|
     *http:Created;
+    # Details of the created menu along with the HTTP links to manage it
     record {|
         *Menu;
         *http:Links;
     |} body;
 |};
 
+# Response for a successful menu item creation
 type MenuItemCreated record {|
     *http:Created;
+    # Details of the created menu item along with the HTTP links to manage it
     record {|
         *MenuItem;
         *http:Links;
     |} body;
 |};
 
+# Error response for when the requested restaurant cannot be found
 type RestaurantNotFound record {|
     *http:NotFound;
+    # Error message
     readonly record {} body = { 
         "message": "Restaurant cannot be found." 
     };
 |};
 
+# Error response for when the requested menu cannot be found
 type MenuNotFound record {|
     *http:NotFound;
+    # Error message
     readonly record {} body = { 
         "message": "Menu cannot be found." 
     };
 |};
 
+# Error response for when the requested menu item cannot be found
 type MenuItemNotFound record {|
+    *http:NotFound;
+    # Error message
     readonly record {} body = { 
         "message": "Menu cannot be found." 
     };
-    *http:NotFound;
 |};
 
-type CreateMenuRequest record {|
-    string name;
-    CreateMenuRequestMenuItem[] menuItems;
-|};
-
-type CreateMenuItemRequest record {|
-    string name;
-    decimal price;
-|};
-
+# Response for a successful restaurant retrieval
 type RestaurantView record {|
     *http:Ok;
+    # Details of the retrieved restaurant along with the HTTP links to manage it
     record {|
         *Restaurant;
         *http:Links;
     |} body;
 |};
 
+# Response for a successful menu retrieval
 type MenuView record {|
     *http:Ok;
+    # Details of the retrieved menu along with the HTTP links to manage it
     record {|
         *Menu;
         *http:Links;
     |} body;
 |};
 
+# Response for a successful menu item retrieval
 type MenuItemView record {|
     *http:Ok;
+    # Details of the retrieved menu item along with the HTTP links to manage it
     record {|
         *MenuItem;
         *http:Links;
     |} body;
 |};
 
+# Response for a successful restaurant deletion
 type RestaurantDeleted record {|
     *http:Ok;
+    # Details of the deleted restaurant
     Restaurant body;
 |};
 
+# Response for a successful menu deletion
 type MenuDeleted record {|
     *http:Ok;
+    # Details of the deleted menu
     Menu body;
 |};
 
+# Response for a successful menu item deletion
 type MenuItemDeleted record {|
     *http:Ok;
+    # Details of the deleted menu item
     MenuItem body;
 |};
 
+# Response for a successful restaurant update
 type RestaurantUpdated record {|
     *http:Ok;
+    # Details of the updated restaurant along with the HTTP links to manage it
     record {|
         *Restaurant;
         *http:Links;
     |} body;
 |};
 
+# Response for a successful menu update
 type MenuUpdated record {|
     *http:Ok;
+    # Details of the updated menu along with the HTTP links to manage itz
     record {|
         *Menu;
         *http:Links;
     |} body;
 |};
 
+# Response for a successful menu item update
 type MenuItemUpdated record {|
     *http:Ok;
+    # Details of the updated menu itemn along with the HTTP links to manage it
     record {|
         *MenuItem;
         *http:Links;
     |} body;
 |};
 
+# Represents an unexpected error
 public type RestaurantInternalError record {|
    *http:InternalServerError;
+    # Error payload
     record {| 
         string message;
     |} body;

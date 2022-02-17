@@ -21,10 +21,10 @@ type ConsumerCreated record {|
     |} body;
 |};
 
-# Response for a successful consumer fetch
+# Response for a successful consumer retrieval
 type ConsumerView record {|
     *http:Ok;
-    # Details of the requested consumer along with the HTTP links to manage it
+    # Details of the retrieved consumer along with the HTTP links to manage it
     record {|
         *Consumer;
         *http:Links;
@@ -34,6 +34,7 @@ type ConsumerView record {|
 # Error response for when the requested consumer cannot be found
 type ConsumerNotFound record {|
     *http:NotFound;
+    # Error message
     readonly record {} body = { 
         "message": "Consumer cannot be found." 
     };
@@ -59,7 +60,6 @@ type ConsumerUpdated record {|
 # Represents an unexpected error
 type ConsumerInternalError record {|
    *http:InternalServerError;
-   # Error payload
     record {| 
         string message;
     |} body;
