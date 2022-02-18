@@ -57,8 +57,16 @@ type ConsumerUpdated record {|
     |} body;
 |};
 
+# Request body to be used when validating an order placed by a consumer
+type ValidateOrderRequest record {|
+    # The ID of the order placed
+    int orderId;
+    # The total amount of the order
+    decimal orderAmount;
+|};
+
 # Represents an unexpected error
-type ConsumerInternalError record {|
+type InternalError record {|
    *http:InternalServerError;
    # Error payload
     record {| 
@@ -74,7 +82,7 @@ service /consumer on new http:Listener(8080) {
     # + request - Details of the consumer to be created
     # + return - `ConsumerCreated` if the consumer was sucessfully created.
     #            `ConsumerInternalError` if an unexpected error occurs.
-    isolated resource function post .(@http:Payload ConsumerRequest request) returns ConsumerCreated|ConsumerInternalError {
+    isolated resource function post .(@http:Payload ConsumerRequest request) returns ConsumerCreated|InternalError {
         do {
             Consumer generatedConsumer = check createConsumer(request.name, request.address, request.email);
             return <ConsumerCreated>{ 
@@ -87,7 +95,7 @@ service /consumer on new http:Listener(8080) {
                 }
             };
         } on fail error e {
-            return <ConsumerInternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.toString() }};
         }
     }
 
@@ -97,7 +105,7 @@ service /consumer on new http:Listener(8080) {
     # + return - `ConsumerView` if the details are successfully fetched.
     #            `ConsumerNotFound` if a consumer with the provided ID was not found.
     #            `ConsumerInternalError` if an unexpected error occurs
-    isolated resource function get [int id]() returns ConsumerView|ConsumerNotFound|ConsumerInternalError {
+    isolated resource function get [int id]() returns ConsumerView|ConsumerNotFound|InternalError {
         do {
             Consumer consumer = check getConsumer(id);
             return <ConsumerView>{ 
@@ -110,7 +118,7 @@ service /consumer on new http:Listener(8080) {
             if e is sql:NoRowsError {
                 return <ConsumerNotFound>{};
             }
-            return <ConsumerInternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.toString() }};
         }       
     }
 
@@ -120,7 +128,7 @@ service /consumer on new http:Listener(8080) {
     # + return - `ConsumerDeleted` if the consumer was successfully deleted.
     #            `ConsumerNotFound` if a consumer with the provided ID was not found.
     #            `ConsumerInternalError` if an unexpected error occurs
-    isolated resource function delete [int id]() returns ConsumerDeleted|ConsumerNotFound|ConsumerInternalError {
+    isolated resource function delete [int id]() returns ConsumerDeleted|ConsumerNotFound|InternalError {
         do {
             Consumer consumer = check deleteConsumer(id);
             return <ConsumerDeleted>{ body: consumer};
@@ -128,7 +136,7 @@ service /consumer on new http:Listener(8080) {
             if e is sql:NoRowsError {
                 return <ConsumerNotFound>{};
             }
-            return <ConsumerInternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.toString() }};
         }       
     }
 
@@ -138,7 +146,7 @@ service /consumer on new http:Listener(8080) {
     # + request - Details of the consumer to be updated
     # + return - `ConsumerUpdated` if the consumer was successfully updated.
     #            `ConsumerInternalError` if an unexpected error occurs
-    isolated resource function put [int id](@http:Payload ConsumerRequest request) returns ConsumerUpdated|ConsumerInternalError {
+    isolated resource function put [int id](@http:Payload ConsumerRequest request) returns ConsumerUpdated|InternalError {
         do {
             Consumer updatedConsumer = check updateConsumer(id, request.name, request.address, request.email);
             return <ConsumerUpdated>{ 
@@ -148,8 +156,18 @@ service /consumer on new http:Listener(8080) {
                 }
             };
         } on fail error e {
-            return <ConsumerInternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.toString() }};
         }       
+    }
+
+    # Resource function to validate an order placed by a consumer. This function is a placeholder and does not perform any meaningful actions
+    #
+    # + id - The ID of consumer who placed the order
+    # + request - The details of the order
+    # + return - `()` if the validation was successfuly.
+    #             An error if the validation was unsuccessful
+    isolated resource function post [int id]/validate(@http:Payload ValidateOrderRequest request) returns error? {
+        // Implement logic
     }
         
 }

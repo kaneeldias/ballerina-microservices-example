@@ -204,7 +204,7 @@ type MenuItemUpdated record {|
 |};
 
 # Represents an unexpected error
-public type RestaurantInternalError record {|
+type InternalError record {|
    *http:InternalServerError;
     # Error payload
     record {| 
@@ -221,7 +221,7 @@ service on new http:Listener(8081) {
     # + request - Details of the restaurant to be created. This can also contain information regarding the menus under the restaurant
     # + return - `RestaurantCreated` if the restaurant was successfully created.
     #            `RestaurantInternalError` if an unexpected error occurs
-    isolated resource function post restaurant(@http:Payload CreateRestaurantRequest request) returns RestaurantCreated|RestaurantInternalError {
+    isolated resource function post restaurant(@http:Payload CreateRestaurantRequest request) returns RestaurantCreated|InternalError {
         do {
             transaction {
                 Restaurant generatedRestaurant = check createRestaurant(request.name, request.address);
@@ -250,7 +250,7 @@ service on new http:Listener(8081) {
                 };
             }
         } on fail error e {
-            return <RestaurantInternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.toString() }};
         }
     }
 
@@ -260,7 +260,7 @@ service on new http:Listener(8081) {
     # + request - Details of the menu to be created. This can also contain information regarding the menu items under the menu
     # + return - `MenuCreated` if the menu was sucessfully created.
     #            `RestaurantInternalError` if an unexpected error occurs
-    isolated resource function post restaurant/[int restaurantId]/menu(@http:Payload CreateMenuRequest request) returns MenuCreated|RestaurantInternalError {
+    isolated resource function post restaurant/[int restaurantId]/menu(@http:Payload CreateMenuRequest request) returns MenuCreated|InternalError {
         do {
             transaction {
                 Menu generatedMenu = check createMenu(request.name, restaurantId);
@@ -283,7 +283,7 @@ service on new http:Listener(8081) {
                 };
             }
         } on fail error e {
-            return <RestaurantInternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.toString() }};
         }
     }
 
@@ -294,7 +294,7 @@ service on new http:Listener(8081) {
     # + request - Details of the menu item to be created
     # + return - `MenuItemCreated` if the menu item was sucessfully created.
     #            `RestaurantInternalError` if an unexpected error occurs
-    isolated resource function post restaurant/[int restaurantId]/menu/[int menuId]/item(@http:Payload CreateMenuItemRequest request) returns MenuItemCreated|RestaurantInternalError {
+    isolated resource function post restaurant/[int restaurantId]/menu/[int menuId]/item(@http:Payload CreateMenuItemRequest request) returns MenuItemCreated|InternalError {
         do {
             MenuItem generatedMenuItem = check createMenuItem(request.name, request.price, menuId);
             return <MenuItemCreated>{ 
@@ -307,7 +307,7 @@ service on new http:Listener(8081) {
                 }
             };
         } on fail error e {
-            return <RestaurantInternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.toString() }};
         }
     }
 
@@ -317,7 +317,7 @@ service on new http:Listener(8081) {
     # + return - `RestaurantView` if the details are successfully fetched.
     #            `RestaurantNotFound` if a restaurant with the provided ID was not found.
     #            `RestaurantInternalError` if an unexpected error occurs
-    isolated resource function get restaurant/[int restaurantId]() returns RestaurantView|RestaurantNotFound|RestaurantInternalError {
+    isolated resource function get restaurant/[int restaurantId]() returns RestaurantView|RestaurantNotFound|InternalError {
         do {
             Restaurant restaurant = check getRestaurant(restaurantId);
             return <RestaurantView>{ 
@@ -330,7 +330,7 @@ service on new http:Listener(8081) {
             if e is sql:NoRowsError {
                 return <RestaurantNotFound>{};
             }
-            return <RestaurantInternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.toString() }};
         } 
     }
 
@@ -341,7 +341,7 @@ service on new http:Listener(8081) {
     # + return - `MenuView` if the details are successfully fetched.
     #            `MenuNotFound` if a menu with the provided ID was not found.
     #            `RestaurantInternalError` if an unexpected error occurs
-    isolated resource function get restaurant/[int restaurantId]/menu/[int menuId]() returns MenuView|MenuNotFound|RestaurantInternalError {
+    isolated resource function get restaurant/[int restaurantId]/menu/[int menuId]() returns MenuView|MenuNotFound|InternalError {
         do {
             Menu menu = check getMenu(menuId);
             return <MenuView>{ 
@@ -354,7 +354,7 @@ service on new http:Listener(8081) {
             if e is sql:NoRowsError {
                 return <MenuNotFound>{};
             }
-            return <RestaurantInternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.toString() }};
         } 
     }
 
@@ -366,7 +366,7 @@ service on new http:Listener(8081) {
     # + return - `MenuItemView` if the details are successfully fetched.
     #            `MenuItemNotFound` if a menu item with the provided ID was not found.
     #            `RestaurantInternalError` if an unexpected error occurs
-    isolated resource function get restaurant/[int restaurantId]/menu/[int menuId]/item/[int menuItemId]() returns MenuItemView|MenuItemNotFound|RestaurantInternalError {
+    isolated resource function get restaurant/[int restaurantId]/menu/[int menuId]/item/[int menuItemId]() returns MenuItemView|MenuItemNotFound|InternalError {
         do {
             MenuItem menuItem = check getMenuItem(menuItemId);
             return <MenuItemView>{ 
@@ -379,7 +379,7 @@ service on new http:Listener(8081) {
             if e is sql:NoRowsError {
                 return <MenuItemNotFound>{};
             }
-            return <RestaurantInternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.toString() }};
         } 
     }
 
@@ -389,7 +389,7 @@ service on new http:Listener(8081) {
     # + return - `RestaurantDeleted` if the restaurant was successfully deleted.
     #            `RestaurantNotFound` if a restaurant with the provided ID was not found.
     #            `RestaurantInternalError` if an unexpected error occurs
-    isolated resource function delete restaurant/[int restaurantId]() returns RestaurantDeleted|RestaurantNotFound|RestaurantInternalError {
+    isolated resource function delete restaurant/[int restaurantId]() returns RestaurantDeleted|RestaurantNotFound|InternalError {
         do {
             Restaurant restaurant = check deleteRestaurant(restaurantId);
             return <RestaurantDeleted>{ body: restaurant};
@@ -397,7 +397,7 @@ service on new http:Listener(8081) {
             if e is sql:NoRowsError {
                 return <RestaurantNotFound>{};
             }
-            return <RestaurantInternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.toString() }};
         }   
     }
 
@@ -408,7 +408,7 @@ service on new http:Listener(8081) {
     # + return - `MenuDeleted` if the menu was successfully deleted.
     #            `MenuNotFound` if a menu with the provided ID was not found.
     #            `RestaurantInternalError` if an unexpected error occurs
-    isolated resource function delete restaurant/[int restaurantId]/menu/[int menuId]() returns MenuDeleted|MenuNotFound|RestaurantInternalError {
+    isolated resource function delete restaurant/[int restaurantId]/menu/[int menuId]() returns MenuDeleted|MenuNotFound|InternalError {
         do {
             Menu menu = check deleteMenu(menuId);
             return <MenuDeleted>{ body: menu};
@@ -416,7 +416,7 @@ service on new http:Listener(8081) {
             if e is sql:NoRowsError {
                 return <MenuNotFound>{};
             }
-            return <RestaurantInternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.toString() }};
         }
     }
 
@@ -428,7 +428,7 @@ service on new http:Listener(8081) {
     # + return - `MenuItemDeleted` if the menu item was successfully deleted.
     #            `MenuItemNotFound` if a menu item with the provided ID was not found.
     #            `RestaurantInternalError` if an unexpected error occurs
-    isolated resource function delete restaurant/[int restaurantId]/menu/[int menuId]/menuItem/[int menuItemId]() returns MenuItemDeleted|MenuItemNotFound|RestaurantInternalError {
+    isolated resource function delete restaurant/[int restaurantId]/menu/[int menuId]/menuItem/[int menuItemId]() returns MenuItemDeleted|MenuItemNotFound|InternalError {
          do {
             MenuItem menuitem = check deleteMenuItem(menuItemId);
             return <MenuItemDeleted>{ body: menuitem};
@@ -436,7 +436,7 @@ service on new http:Listener(8081) {
             if e is sql:NoRowsError {
                 return <MenuItemNotFound>{};
             }
-            return <RestaurantInternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.toString() }};
         }
     }
 
@@ -447,7 +447,7 @@ service on new http:Listener(8081) {
     # + return - `RestaurantUpdated` if the restaurant was successfully updated.
     #            `RestaurantNotFound` if a restaurant with the provided ID was not found.
     #            `RestaurantInternalError` if an unexpected error occurs
-    isolated resource function put restaurant/[int restaurantId](@http:Payload UpdateRestaurantRequest request) returns RestaurantUpdated|RestaurantNotFound|RestaurantInternalError {
+    isolated resource function put restaurant/[int restaurantId](@http:Payload UpdateRestaurantRequest request) returns RestaurantUpdated|RestaurantNotFound|InternalError {
         do {
             Restaurant updatedRestaurant = check updateRestaurant(restaurantId, request.name, request.address);
             return <RestaurantUpdated>{ 
@@ -460,7 +460,7 @@ service on new http:Listener(8081) {
             if e is sql:NoRowsError {
                 return <RestaurantNotFound>{};
             }
-            return <RestaurantInternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.toString() }};
         }       
     }
 
@@ -472,7 +472,7 @@ service on new http:Listener(8081) {
     # + return - `MenuUpdated` if the menu was successfully updated.
     #            `MenuNotFound` if a menu with the provided ID was not found.
     #            `RestaurantInternalError` if an unexpected error occurs
-    isolated resource function put restaurant/[int restaurantId]/menu/[int menuId](@http:Payload UpdateMenuRequest request) returns MenuUpdated|MenuNotFound|RestaurantInternalError {
+    isolated resource function put restaurant/[int restaurantId]/menu/[int menuId](@http:Payload UpdateMenuRequest request) returns MenuUpdated|MenuNotFound|InternalError {
         do {
             Menu updatedMenu = check updateMenu(menuId, request.name);
             return <MenuUpdated>{ 
@@ -485,7 +485,7 @@ service on new http:Listener(8081) {
             if e is sql:NoRowsError {
                 return <RestaurantNotFound>{};
             }
-            return <RestaurantInternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.toString() }};
         }  
     }
 
@@ -498,7 +498,7 @@ service on new http:Listener(8081) {
     # + return - `MenuItemUpdated` if the menu was successfully updated.
     #            `MenuItemNotFound` if a menu with the provided ID was not found.
     #            `RestaurantInternalError` if an unexpected error occurs
-    isolated resource function put restaurant/[int restaurantId]/menu/[int menuId]/item/[int menuItemId](@http:Payload UpdateMenuItemRequest request) returns MenuItemUpdated|MenuItemNotFound|RestaurantInternalError {
+    isolated resource function put restaurant/[int restaurantId]/menu/[int menuId]/item/[int menuItemId](@http:Payload UpdateMenuItemRequest request) returns MenuItemUpdated|MenuItemNotFound|InternalError {
         do {
             MenuItem updatedMenuItem = check updateMenuItem(menuItemId, request.name, request.price);
             return <MenuItemUpdated>{ 
@@ -511,7 +511,7 @@ service on new http:Listener(8081) {
             if e is sql:NoRowsError {
                 return <MenuItemNotFound>{};
             }
-            return <RestaurantInternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.toString() }};
         }  
     }
 
