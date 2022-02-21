@@ -2,35 +2,53 @@ import ballerina/http;
 import ballerina/sql;
 import ballerina/time;
 
+# The request body to be used when creating an order
 type CreateOrderRequest record {|
+    # The ID of the consumer creating the order
     int consumerId;
+    # The ID of the restaurant to which the order is being placed
     int restaurantId;
+    # The address to which the order should be delivered to
     string deliveryAddress;
+    # The date and time at which the order should be delivered
     time:Civil deliveryTime;
+    # The items in the order
     CreateOrderRequestItem[] orderItems; 
 |};
 
+# Representation of an order item to be used when creating an order
 type CreateOrderRequestItem record {|
+    # The ID of the menu item
     int menuItemId;
+    # The quantity of the item required in the order
     int quantity;
 |};
 
+# The request body to be used when adding an item to an order
 type CreateOrderItemRequest record {|
+    # The ID of the order to which the item is being added
     int orderId;
+    # The ID of the menu item to be added
     int menuItemId;
+    # The quantity of the item required in the order
     int quantity;
 |};
 
+
+# Response for a successful order creation
 type OrderCreated record {|
     *http:Created;
+    # Details of the created order along with the links to manage it
     record {|
         *Order;
         *http:Links;
     |} body;
 |};
 
+# Response for a successful order item creation
 type OrderItemCreated record {|
     *http:Created;
+    # Details of the created order item along with the links to manage it
     record {|
         *OrderItem;
         *http:Links;
@@ -54,6 +72,7 @@ type OrderItemNotFound record {|
         "message": "Order item cannot be found." 
     };
 |};
+
 # Response for a successful order retrieval
 type OrderView record {|
     *http:Ok;
@@ -64,18 +83,21 @@ type OrderView record {|
     |} body;
 |};
 
+# Response for a successful order deletion
 type OrderDeleted record {|
     *http:Ok;
     # Details of the deleted order
     Order body;
 |};
 
+# Response for a successful order item deletion
 type OrderItemDeleted record {|
     *http:Ok;
     # Details of the deleted order item
     OrderItem body;
 |};
 
+# Response for a successful creation of an order
 type OrderConfirmed record {|
     *http:Ok;
     # Details of the confirmed order
@@ -92,8 +114,14 @@ type InternalError record {|
 |}; 
 
 
+# Description
 service /'order on new http:Listener(8082) {
 
+    # Resource functuon to create a new order
+    #
+    # + request - Details of the order to be created. This can also contain information regarding the order items within the order
+    # + return - `OrderCreated` if the order was successfully created.
+    #            `InternalError` if an unexpected error occurs
     isolated resource function post .(@http:Payload CreateOrderRequest request) returns OrderCreated|InternalError {
         do {
             transaction {
@@ -121,6 +149,12 @@ service /'order on new http:Listener(8082) {
         }
     }
 
+    # Resource function to retrieve the details of an order
+    #
+    # + id - The ID of the requested order
+    # + return - `OrderView` if the details are successfully fetched.
+    #            `OrderNotFound` if an order with the provided ID was not found.
+    #            `InternalError` if an unexpected error occurs
     isolated resource function get [int id]() returns OrderView|OrderNotFound|InternalError {
         do {
             Order 'order = check getOrder(id);
@@ -138,6 +172,12 @@ service /'order on new http:Listener(8082) {
         } 
     }
 
+    # Resource function to add an order item to an existing order
+    #
+    # + orderId - The ID of the order to which the item should be added  
+    # + request - The details of the order item to be added
+    # + return - `OrderItemCreated` if the menu item was sucessfully created.
+    #            `InternalError` if an unexpected error occurs
     isolated resource function post [int orderId]/item(@http:Payload CreateOrderItemRequest request) returns OrderItemCreated|InternalError {
         do {
             OrderItem generatedOrderItem = check createOrderItem(request.menuItemId, request.quantity, request.orderId);
@@ -152,6 +192,12 @@ service /'order on new http:Listener(8082) {
         } 
     }
 
+    # Resource function to delete an order
+    #
+    # + id - The ID of the order to be deleted
+    # + return - `OrderDeleted` if the order was successfully deleted.
+    #            `OrderNotFound` if a order with the provided ID was not found.
+    #            `InternalError` if an unexpected error occurs
     isolated resource function delete [int id]() returns OrderDeleted|OrderNotFound|InternalError {
         do {
             Order 'order = check removeOrder(id);
@@ -164,7 +210,14 @@ service /'order on new http:Listener(8082) {
         } 
     }
 
-    isolated resource function delete orderItem/[int id]() returns OrderItemDeleted|OrderItemNotFound|InternalError {
+    # Resource function to remove an order item from an existing order
+    #
+    # + orderId - The ID of the order from which the item should be removed  
+    # + id - The ID of the order item to be removed
+    # + return - `OrderItemDeleted` if the order item was successfully deleted.
+    #            `OrderItemNotFound` if a order item with the provided ID was not found.
+    #            `InternalError` if an unexpected error occurs
+    isolated resource function delete [int orderId]/orderItem/[int id]() returns OrderItemDeleted|OrderItemNotFound|InternalError {
         do {
             OrderItem orderItem = check removeOrderItem(id);
             return <OrderItemDeleted> { body: orderItem };
@@ -176,6 +229,13 @@ service /'order on new http:Listener(8082) {
         } 
     }
 
+
+    # Resource function to confirm a placed order
+    #
+    # + id - The ID of the order to be confirmed
+    # + return - `OrderConfirmed` if the order was successfully confirmed.
+    #            `OrderNotFound` if a order with the provided ID was not found.
+    #            `InternalError` if an unexpected error occurs
     isolated resource function get [int id]/confirm() returns OrderConfirmed|OrderNotFound|InternalError {
         do {
             Order 'order = check confirmOrder(id);
@@ -189,6 +249,10 @@ service /'order on new http:Listener(8082) {
     }
 }
 
+# Obtain the HTTP links related to a given order
+#
+# + orderId - The ID of the order
+# + return - An array of links
 isolated function getOrderLinks(int orderId) returns http:Link[] {
     return [
         {
@@ -209,6 +273,11 @@ isolated function getOrderLinks(int orderId) returns http:Link[] {
     ];
 }
 
+# Obtain the HTTP links related to a given order item
+#
+# + orderItemId - The ID of the order item  
+# + parentOrderId - The ID of the order to which the order item belong
+# + return - An array of links
 isolated function getOrderItemLinks(int orderItemId, int parentOrderId) returns http:Link[] {
     return [
         {

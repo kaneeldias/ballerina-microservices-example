@@ -221,7 +221,6 @@ isolated function confirmOrder(int orderId) returns Order|error {
     return 'order;
 }
 
-
 isolated function getConsumerDetails(int consumerId) returns Consumer|error {
     Consumer consumer = check consumerEndpoint->get(consumerId.toString());
     return {
