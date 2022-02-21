@@ -31,18 +31,23 @@ public function main() returns error? {
         CREATE TABLE IF NOT EXISTS Consumer.Consumers (
             id      INTEGER         AUTO_INCREMENT PRIMARY KEY,
             name    VARCHAR(255)    NOT NULL,
-            address VARCHAR(255)    NOT NULL
+            address VARCHAR(255)    NOT NULL,
+            email   VARCHAR(255)    NOT NULL
         );
     `);
 
 
     // Order 
+    _ = check dbClient->execute(`DROP DATABASE Orders;`);
     _ = check dbClient->execute(`CREATE DATABASE IF NOT EXISTS Orders;`);
     _ = check dbClient->execute(`
         CREATE TABLE IF NOT EXISTS Orders.Orders (
             id              INTEGER AUTO_INCREMENT PRIMARY KEY,
             consumerId      INTEGER NOT NULL,
-            restaurantId    INTEGER NOT NULL
+            restaurantId    INTEGER NOT NULL,
+            deliveryAddress VARCHAR(255) NOT NULL,
+            deliveryTime    TIMESTAMP NOT NULL,
+            status          VARCHAR(20) NOT NULL
         );
     `);
     _ = check dbClient->execute(`
@@ -83,6 +88,5 @@ public function main() returns error? {
             FOREIGN KEY (menuId) REFERENCES Restaurant.Menus(id) ON DELETE CASCADE
         );
     `);
-
 
 }

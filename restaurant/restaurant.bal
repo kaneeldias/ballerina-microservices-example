@@ -1,7 +1,7 @@
 import ballerinax/mysql;
 import ballerina/sql;
 
-# Represents a reastaurant
+# Represents a restaurant
 public type Restaurant record {|
     # The ID of the restaurant
     int id;
@@ -115,7 +115,7 @@ isolated function getRestaurant(int restaurantId) returns Restaurant|error {
 # + menuId - The ID of the requested menu
 # + return - The details of the menu if the retrieval was successful. An error if unsuccessful
 isolated function getMenu(int menuId) returns Menu|error {
-    Menu menu = check dbClient->queryRow(`SELECT id, name, address FROM Menus WHERE id = ${menuId}`);
+    Menu menu = check dbClient->queryRow(`SELECT id, name FROM Menus WHERE id = ${menuId}`);
     menu.items = check getMenuItems(menuId);
     return menu;
 }
@@ -218,4 +218,22 @@ isolated function updateMenu(int menuId, string name) returns Menu|error {
 isolated function updateMenuItem(int menuItemId, string name, decimal price) returns MenuItem|error {
     _ = check dbClient->execute(`UPDATE MenuItems SET name=${name}, price=${price} WHERE id = ${menuItemId}`);
     return getMenuItem(menuItemId);
+}
+
+# Obtains the parent menu of a provided menu item
+#
+# + menuItemId - The ID of the menu item for which the parent menu should be retrieved
+# + return - The updated details of the parent menu if the retrieval successful. An error if unsuccessful
+public isolated function getParentMenu(int menuItemId) returns Menu|error {
+    int menuId = check dbClient->queryRow(`SELECT menuId FROM MenuItems WHERE id=${menuItemId}`);
+    return getMenu(menuId);
+}
+
+# Obtains the parent restaurant of a provided menu
+#
+# + menuId - The ID of the menu for which the parent restaurant should be retrieved
+# + return - The updated details of the parent restaurant if the retrieval successful. An error if unsuccessful
+public isolated function getParentRestaurant(int menuId) returns Restaurant|error {
+    int restaurantId = check dbClient->queryRow(`SELECT restaurantId FROM Menus WHERE id=${menuId}`);
+    return getRestaurant(restaurantId);
 }

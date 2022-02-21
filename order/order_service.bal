@@ -13,27 +13,16 @@ type CreateOrderRequest record {|
     # The date and time at which the order should be delivered
     time:Civil deliveryTime;
     # The items in the order
-    CreateOrderRequestItem[] orderItems; 
+    CreateOrderItemRequest[] orderItems; 
 |};
 
 # Representation of an order item to be used when creating an order
-type CreateOrderRequestItem record {|
+type CreateOrderItemRequest record {|
     # The ID of the menu item
     int menuItemId;
     # The quantity of the item required in the order
     int quantity;
 |};
-
-# The request body to be used when adding an item to an order
-type CreateOrderItemRequest record {|
-    # The ID of the order to which the item is being added
-    int orderId;
-    # The ID of the menu item to be added
-    int menuItemId;
-    # The quantity of the item required in the order
-    int quantity;
-|};
-
 
 # Response for a successful order creation
 type OrderCreated record {|
@@ -122,12 +111,12 @@ service /'order on new http:Listener(8082) {
     # + request - Details of the order to be created. This can also contain information regarding the order items within the order
     # + return - `OrderCreated` if the order was successfully created.
     #            `InternalError` if an unexpected error occurs
-    isolated resource function post .(@http:Payload CreateOrderRequest request) returns OrderCreated|InternalError {
+    isolated resource function post .(@http:Payload CreateOrderRequest request) returns OrderCreated|InternalError|error  {
         do {
             transaction {
                 Order generatedOrder = check createOrder(request.consumerId, request.restaurantId, request.deliveryAddress, request.deliveryTime);
 
-                foreach CreateOrderRequestItem orderItem in request.orderItems {
+                foreach CreateOrderItemRequest orderItem in request.orderItems {
                     OrderItem generatedOrderItem = check createOrderItem(orderItem.menuItemId, orderItem.quantity, generatedOrder.id);
                     generatedOrder.orderItems.push(generatedOrderItem);
                 }
@@ -145,7 +134,8 @@ service /'order on new http:Listener(8082) {
                 };
             }
         } on fail error e {
-            return <InternalError>{ body: { message: e.toString() }};
+            return e;
+            //return <InternalError>{ body: { message: e.message() }};
         }
     }
 
@@ -180,7 +170,7 @@ service /'order on new http:Listener(8082) {
     #            `InternalError` if an unexpected error occurs
     isolated resource function post [int orderId]/item(@http:Payload CreateOrderItemRequest request) returns OrderItemCreated|InternalError {
         do {
-            OrderItem generatedOrderItem = check createOrderItem(request.menuItemId, request.quantity, request.orderId);
+            OrderItem generatedOrderItem = check createOrderItem(request.menuItemId, request.quantity, orderId);
             return <OrderItemCreated>{ 
                 body: {
                     ...generatedOrderItem,

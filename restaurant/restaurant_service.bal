@@ -383,6 +383,31 @@ service on new http:Listener(8081) {
         } 
     }
 
+    # Resource function to fetch the details of a menu
+    #
+    # + menuItemId - The ID of the requested menu item
+    # + return - `MenuItemView` if the details are successfully fetched.
+    #            `MenuItemNotFound` if a menu item with the provided ID was not found.
+    #            `InternalError` if an unexpected error occurs
+    isolated resource function get menuItem/[int menuItemId]() returns MenuItemView|MenuItemNotFound|InternalError {
+        do {
+            MenuItem menuItem = check getMenuItem(menuItemId);
+            Menu parentMenu = check getParentMenu(menuItemId);
+            Restaurant parentRestaurant = check getParentRestaurant(parentMenu.id);
+            return <MenuItemView>{ 
+                body: {
+                    ...menuItem,
+                    links: getMenuItemLinks(menuItem.id, parentMenu.id, parentRestaurant.id)
+                }
+            };
+        } on fail error e {
+            if e is sql:NoRowsError {
+                return <MenuItemNotFound>{};
+            }
+            return <InternalError>{ body: { message: e.toString() }};
+        } 
+    }
+
     # Resource function to delete a consumer. This would also delete all menus and menu items under the restaurant
     #
     # + restaurantId - The ID of the restaurant to be deleted
