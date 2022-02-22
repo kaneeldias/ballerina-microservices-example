@@ -104,7 +104,7 @@ service /consumer on new http:Listener(8080) {
                 }
             };
         } on fail error e {
-            return <InternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.message() }};
         }
     }
 
@@ -127,7 +127,7 @@ service /consumer on new http:Listener(8080) {
             if e is sql:NoRowsError {
                 return <ConsumerNotFound>{};
             }
-            return <InternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.message() }};
         }       
     }
 
@@ -145,7 +145,7 @@ service /consumer on new http:Listener(8080) {
             if e is sql:NoRowsError {
                 return <ConsumerNotFound>{};
             }
-            return <InternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.message() }};
         }       
     }
 
@@ -165,7 +165,7 @@ service /consumer on new http:Listener(8080) {
                 }
             };
         } on fail error e {
-            return <InternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.message() }};
         }       
     }
 

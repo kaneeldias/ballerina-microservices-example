@@ -298,12 +298,20 @@ isolated function confirmOrder(int orderId) returns Order|error {
         orderTotal += orderItem.menuItem.price;
     }
 
-    http:Request request = new;
-    request.setJsonPayload({
+    http:Request consumerValidateRequest = new;
+    consumerValidateRequest.setJsonPayload({
         orderId: orderId,
         orderAmount: orderTotal
     });
-    _ = check consumerEndpoint->post('order.consumer.id.toString() + "/validate", request, targetType = json);
+    _ = check consumerEndpoint->post('order.consumer.id.toString() + "/validate", consumerValidateRequest, targetType = json);
+
+    http:Request accountingChargeRequest = new;
+    accountingChargeRequest.setJsonPayload({
+        consumerId: 'order.consumer.id,
+        orderId: orderId,
+        orderAmount: orderTotal
+    });
+    _ = check accountingEndpoint->post("charge", accountingChargeRequest, targetType = json);
 
     'order = check changeOrderStatus(orderId, APPROVED);
     return 'order;
@@ -317,7 +325,7 @@ isolated function getConsumerDetails(int consumerId) returns Consumer|error {
     Consumer consumer = check consumerEndpoint->get(consumerId.toString());
     return <Consumer>{
         id: consumerId,
-        name: <string>consumer.name
+        name: consumer.name
     };
 }
 
@@ -329,7 +337,7 @@ isolated function getRestaurantDetails(int restaurantId) returns Restaurant|erro
     Restaurant restaurant = check restaurantEndpoint->get(restaurantId.toString());
     return <Restaurant>{
         id: restaurantId,
-        name: <string>restaurant.name
+        name: restaurant.name
     };
 }
 
@@ -341,7 +349,7 @@ isolated function getMenuItem(int menuItemId) returns MenuItem|error {
     MenuItem menuItem = check menuItemEndpoint->get(menuItemId.toString());
     return <MenuItem>{
         id: menuItemId,
-        name: <string>menuItem.name,
-        price: <decimal>menuItem.price
+        name: menuItem.name,
+        price: menuItem.price
     };
 }

@@ -158,7 +158,7 @@ service /'order on new http:Listener(8082) {
             if e is sql:NoRowsError {
                 return <OrderNotFound>{};
             }
-            return <InternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.message() }};
         } 
     }
 
@@ -178,7 +178,7 @@ service /'order on new http:Listener(8082) {
                 } 
             };
         } on fail error e {
-            return <InternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.message() }};
         } 
     }
 
@@ -196,7 +196,7 @@ service /'order on new http:Listener(8082) {
             if e is sql:NoRowsError {
                 return <OrderNotFound>{};
             }
-            return <InternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.message() }};
         } 
     }
 
@@ -215,7 +215,7 @@ service /'order on new http:Listener(8082) {
             if e is sql:NoRowsError {
                 return <OrderItemNotFound>{};
             }
-            return <InternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.message() }};
         } 
     }
 
@@ -226,7 +226,7 @@ service /'order on new http:Listener(8082) {
     # + return - `OrderConfirmed` if the order was successfully confirmed.
     #            `OrderNotFound` if a order with the provided ID was not found.
     #            `InternalError` if an unexpected error occurs
-    isolated resource function get [int id]/confirm() returns OrderConfirmed|OrderNotFound|InternalError {
+    isolated resource function get [int id]/confirm() returns OrderConfirmed|OrderNotFound|InternalError|error {
         do {
             Order 'order = check confirmOrder(id);
             return <OrderConfirmed> { body: 'order };
@@ -234,7 +234,7 @@ service /'order on new http:Listener(8082) {
             if e is sql:NoRowsError {
                 return <OrderNotFound>{};
             }
-            return <InternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.message() }};
         }
     }
 }

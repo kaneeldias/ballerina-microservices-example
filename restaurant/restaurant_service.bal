@@ -250,7 +250,7 @@ service on new http:Listener(8081) {
                 };
             }
         } on fail error e {
-            return <InternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.message() }};
         }
     }
 
@@ -283,7 +283,7 @@ service on new http:Listener(8081) {
                 };
             }
         } on fail error e {
-            return <InternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.message() }};
         }
     }
 
@@ -307,7 +307,7 @@ service on new http:Listener(8081) {
                 }
             };
         } on fail error e {
-            return <InternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.message() }};
         }
     }
 
@@ -330,7 +330,7 @@ service on new http:Listener(8081) {
             if e is sql:NoRowsError {
                 return <RestaurantNotFound>{};
             }
-            return <InternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.message() }};
         } 
     }
 
@@ -354,7 +354,7 @@ service on new http:Listener(8081) {
             if e is sql:NoRowsError {
                 return <MenuNotFound>{};
             }
-            return <InternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.message() }};
         } 
     }
 
@@ -379,7 +379,7 @@ service on new http:Listener(8081) {
             if e is sql:NoRowsError {
                 return <MenuItemNotFound>{};
             }
-            return <InternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.message() }};
         } 
     }
 
@@ -404,7 +404,7 @@ service on new http:Listener(8081) {
             if e is sql:NoRowsError {
                 return <MenuItemNotFound>{};
             }
-            return <InternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.message() }};
         } 
     }
 
@@ -422,7 +422,7 @@ service on new http:Listener(8081) {
             if e is sql:NoRowsError {
                 return <RestaurantNotFound>{};
             }
-            return <InternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.message() }};
         }   
     }
 
@@ -441,7 +441,7 @@ service on new http:Listener(8081) {
             if e is sql:NoRowsError {
                 return <MenuNotFound>{};
             }
-            return <InternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.message() }};
         }
     }
 
@@ -461,7 +461,7 @@ service on new http:Listener(8081) {
             if e is sql:NoRowsError {
                 return <MenuItemNotFound>{};
             }
-            return <InternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.message() }};
         }
     }
 
@@ -485,7 +485,7 @@ service on new http:Listener(8081) {
             if e is sql:NoRowsError {
                 return <RestaurantNotFound>{};
             }
-            return <InternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.message() }};
         }       
     }
 
@@ -510,7 +510,7 @@ service on new http:Listener(8081) {
             if e is sql:NoRowsError {
                 return <RestaurantNotFound>{};
             }
-            return <InternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.message() }};
         }  
     }
 
@@ -536,7 +536,7 @@ service on new http:Listener(8081) {
             if e is sql:NoRowsError {
                 return <MenuItemNotFound>{};
             }
-            return <InternalError>{ body: { message: e.toString() }};
+            return <InternalError>{ body: { message: e.message() }};
         }  
     }
 

@@ -12,15 +12,14 @@ public function main() returns error? {
     mysql:Client dbClient = check new(host=HOST, user=USER, password=PASSWORD, port=PORT);
 
     // Accounting 
+    _ = check dbClient->execute(`DROP DATABASE IF EXISTS Accounting;`);
     _ = check dbClient->execute(`CREATE DATABASE IF NOT EXISTS Accounting;`);
     _ = check dbClient->execute(`
         CREATE TABLE IF NOT EXISTS Accounting.bills (
             id          INTEGER         AUTO_INCREMENT PRIMARY KEY,
+            consumerId  INTEGER         NOT NULL,
             orderId     INTEGER         NOT NULL,
-            orderAmount DECIMAL(10,2)   NOT NULL,
-            deliveryFee DECIMAL(10,2)   NOT NULL,
-            discount    DECIMAL(10,2)   NOT NULL,
-            finalAmount DECIMAL(10,2)   NOT NULL
+            orderAmount DECIMAL(10,2)   NOT NULL
         );
     `);
     
@@ -38,7 +37,6 @@ public function main() returns error? {
 
 
     // Order 
-    _ = check dbClient->execute(`DROP DATABASE Orders;`);
     _ = check dbClient->execute(`CREATE DATABASE IF NOT EXISTS Orders;`);
     _ = check dbClient->execute(`
         CREATE TABLE IF NOT EXISTS Orders.Orders (

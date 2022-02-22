@@ -336,7 +336,7 @@ modules = [
 ]
 
 [[package]]
-org = "kaneeldiasjkcnx"
+org = "ftgo"
 name = "restaurant"
 version = "1.0.0"
 dependencies = [
@@ -347,7 +347,7 @@ dependencies = [
 	{org = "ballerinax", name = "mysql"}
 ]
 modules = [
-	{org = "kaneeldiasjkcnx", packageName = "restaurant", moduleName = "restaurant"}
+	{org = "ftgo", packageName = "restaurant", moduleName = "restaurant"}
 ]
 
 

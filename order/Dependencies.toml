@@ -88,6 +88,9 @@ dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "lang.value"}
 ]
+modules = [
+	{org = "ballerina", packageName = "io", moduleName = "io"}
+]
 
 [[package]]
 org = "ballerina"
@@ -339,11 +342,12 @@ modules = [
 ]
 
 [[package]]
-org = "kaneeldiasjkcnx"
+org = "ftgo"
 name = "order"
 version = "1.0.0"
 dependencies = [
 	{org = "ballerina", name = "http"},
+	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "sql"},
 	{org = "ballerina", name = "time"},
 	{org = "ballerinai", name = "observe"},
@@ -351,7 +355,7 @@ dependencies = [
 	{org = "ballerinax", name = "mysql"}
 ]
 modules = [
-	{org = "kaneeldiasjkcnx", packageName = "order", moduleName = "order"}
+	{org = "ftgo", packageName = "order", moduleName = "order"}
 ]
 
 
