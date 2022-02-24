@@ -3,3 +3,5 @@ USER="root"
 PASSWORD="Test123#"
 PORT=3305
 DATABASE="Restaurant"
+
+ORDER_ENDPOINT = "http://localhost:8082/order/"

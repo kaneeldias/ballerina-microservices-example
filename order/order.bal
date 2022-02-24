@@ -23,14 +23,16 @@ enum OrderState {
     APPROVAL_PENDING = "APPROVAL_PENDING",
     APPROVED = "APPROVED",
     REJECTED = "REJECTED",
-    CANCEL_PENDING = "CANCEL_PENDING",
-    CANCELLED = "CANCELLED",
-    REVISION_PENDING = "REVISION_PENDING"
+    PREPARING = "PREPARING",
+    READY_FOR_PICKUP = "READY_FOR_PICKUP",
+    PICKED_UP = "PICKED_UP",
+    DELIVERED = "DELIVERED",
+    CANCELLED = "CANCELLED"
 }
 
 # Represents an order
 type Order record {|
-    # The order of the ID
+    # The ID of the order
     int id;
     # The consumer who placed the order
     Consumer consumer;
@@ -312,6 +314,12 @@ isolated function confirmOrder(int orderId) returns Order|error {
         orderAmount: orderTotal
     });
     _ = check accountingEndpoint->post("charge", accountingChargeRequest, targetType = json);
+
+    http:Request createTicketRequest = new;
+    createTicketRequest.setJsonPayload({
+        orderId: orderId
+    });
+    _ = check restaurantEndpoint->post('order.restaurant.id.toString() + "/ticket", createTicketRequest, targetType = json);
 
     'order = check changeOrderStatus(orderId, APPROVED);
     return 'order;

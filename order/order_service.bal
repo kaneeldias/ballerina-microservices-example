@@ -1,5 +1,6 @@
 import ballerina/http;
 import ballerina/sql;
+import ballerina/log;
 import ballerina/time;
 
 # The request body to be used when creating an order
@@ -106,7 +107,7 @@ type InternalError record {|
 # Description
 service /'order on new http:Listener(8082) {
 
-    # Resource functuon to create a new order
+    # Resource function to create a new order
     #
     # + request - Details of the order to be created. This can also contain information regarding the order items within the order
     # + return - `OrderCreated` if the order was successfully created.
@@ -219,7 +220,6 @@ service /'order on new http:Listener(8082) {
         } 
     }
 
-
     # Resource function to confirm a placed order
     #
     # + id - The ID of the order to be confirmed
@@ -227,6 +227,7 @@ service /'order on new http:Listener(8082) {
     #            `OrderNotFound` if a order with the provided ID was not found.
     #            `InternalError` if an unexpected error occurs
     isolated resource function get [int id]/confirm() returns OrderConfirmed|OrderNotFound|InternalError|error {
+        log:printInfo("Order confirm request", orderId = id);
         do {
             Order 'order = check confirmOrder(id);
             return <OrderConfirmed> { body: 'order };

@@ -1,5 +1,6 @@
 import ballerina/http;
 import ballerina/sql;
+import ballerina/log;
 
 # Request body to be used when creating a restaurant
 type CreateRestaurantRequest record {|
@@ -65,6 +66,12 @@ type UpdateMenuItemRequest record {|
     decimal price;
 |};
 
+# The request body to be used when creating a ticket
+type CreateTicketRequest record {|
+    # The ID of the order associated with the ticket
+    int orderId;
+|};
+
 # Response for a successful restaurant creation
 type RestaurantCreated record {|
     *http:Created;
@@ -91,6 +98,16 @@ type MenuItemCreated record {|
     # Details of the created menu item along with the HTTP links to manage it
     record {|
         *MenuItem;
+        *http:Links;
+    |} body;
+|};
+
+# Response for a successful ticket creation
+type TicketCreated record {|
+    *http:Created;
+    # Details of the ticket along with the HTTP links to manage it
+    record {|
+        *Ticket;
         *http:Links;
     |} body;
 |};
@@ -122,6 +139,16 @@ type MenuItemNotFound record {|
     };
 |};
 
+# Error response for when the requested ticket cannot be found
+type TicketNotFound record {|
+    *http:NotFound;
+    # Error message
+    readonly record {} body = { 
+        "message": "Menu cannot be found." 
+    };
+|};
+
+
 # Response for a successful restaurant retrieval
 type RestaurantView record {|
     *http:Ok;
@@ -151,6 +178,17 @@ type MenuItemView record {|
         *http:Links;
     |} body;
 |};
+
+# Response for a successful ticket retrieval
+type TicketView record {|
+    *http:Ok;
+    # Details of the retrieved menu item along with the HTTP links to manage it
+    record {|
+        *Ticket;
+        *http:Links;
+    |} body;
+|};
+
 
 # Response for a successful restaurant deletion
 type RestaurantDeleted record {|
@@ -199,6 +237,16 @@ type MenuItemUpdated record {|
     # Details of the updated menu itemn along with the HTTP links to manage it
     record {|
         *MenuItem;
+        *http:Links;
+    |} body;
+|};
+
+# Response for a successful ticket update
+type TicketUpdated record {|
+    *http:Ok;
+    # Details of the updated menu itemn along with the HTTP links to manage it
+    record {|
+        *Ticket;
         *http:Links;
     |} body;
 |};
@@ -540,6 +588,90 @@ service on new http:Listener(8081) {
         }  
     }
 
+    isolated resource function post restaurant/[int restaurantId]/ticket(@http:Payload CreateTicketRequest request) returns TicketCreated|InternalError {
+        log:printInfo("Ticket create request", restaurantId = restaurantId, request = request);
+        do {
+            Ticket generatedTicket = check createTicket(restaurantId, request.orderId);
+            return <TicketCreated>{ 
+                body: {
+                    ...generatedTicket,
+                    links: getTicketLinks(generatedTicket.id)
+                }
+            };
+        } on fail error e {
+            log:printError("Error creating ticket", 'error = e);
+            return <InternalError>{ body: { message: e.message() }};
+        }  
+    }
+
+     isolated resource function get restaurant/[int restaurantId]/ticket/[int id]() returns TicketView|TicketNotFound|InternalError {
+        do {
+            Ticket ticket = check getTicket(id);
+            return <TicketView>{ 
+                body: {
+                    ...ticket,
+                    links: getTicketLinks(id)
+                }
+            };
+        } on fail error e {
+            if e is sql:NoRowsError {
+                return <TicketNotFound>{};
+            }
+            return <InternalError>{ body: { message: e.message() }};
+        }  
+    }
+
+    isolated resource function put restaurant/[int restaurantId]/ticket/[int id]/markPreparing() returns TicketUpdated|TicketNotFound|InternalError {
+        do {
+            Ticket updatedTicket = check updateTicket(id, PREPARING);
+            return <TicketUpdated>{
+                body: {
+                    ...updatedTicket,
+                    links: getTicketLinks(id)
+                }
+            };
+        } on fail error e {
+            if e is sql:NoRowsError {
+                return <TicketNotFound>{};
+            }
+            return <InternalError>{ body: { message: e.message() }};
+        } 
+    }
+
+    isolated resource function put restaurant/[int restaurantId]/ticket/[int id]/markReady() returns TicketUpdated|TicketNotFound|InternalError {
+        do {
+            Ticket updatedTicket = check updateTicket(id, READY);
+            return <TicketUpdated>{
+                body: {
+                    ...updatedTicket,
+                    links: getTicketLinks(id)
+                }
+            };
+        } on fail error e {
+            if e is sql:NoRowsError {
+                return <TicketNotFound>{};
+            }
+            return <InternalError>{ body: { message: e.message() }};
+        } 
+    }
+
+    isolated resource function put restaurant/[int restaurantId]/ticket/[int id]/markPickedUp() returns TicketUpdated|TicketNotFound|InternalError {
+        do {
+            Ticket updatedTicket = check updateTicket(id, PICKED_UP);
+            return <TicketUpdated>{
+                body: {
+                    ...updatedTicket,
+                    links: getTicketLinks(id)
+                }
+            };
+        } on fail error e {
+            if e is sql:NoRowsError {
+                return <TicketNotFound>{};
+            }
+            return <InternalError>{ body: { message: e.message() }};
+        } 
+    }
+
 }
 
 # Returns the HTTP links related to a given restaurant
@@ -627,6 +759,20 @@ isolated function getMenuItemLinks(int menuItemId, int parentMenuId, int parentR
         {
             rel: "parent restaurant",
             href: "/restaurant/" + parentRestaurantId.toString(),
+            methods: [http:GET]
+        }
+    ];
+}
+
+# Returns the HTTP links related to a given ticket
+#
+# + ticketId - The ID of the ticket
+# + return - An array of links
+isolated function getTicketLinks(int ticketId) returns http:Link[] {
+    return [
+        {
+            rel: "view",
+            href: "/ticket/" + ticketId.toString(),
             methods: [http:GET]
         }
     ];

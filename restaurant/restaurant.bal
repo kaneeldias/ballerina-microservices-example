@@ -1,8 +1,9 @@
 import ballerinax/mysql;
 import ballerina/sql;
+import ballerina/http;
 
 # Represents a restaurant
-public type Restaurant record {|
+type Restaurant record {|
     # The ID of the restaurant
     int id;
     # The name of the restaurant
@@ -14,7 +15,7 @@ public type Restaurant record {|
 |};
 
 # Represents a menu
-public type Menu record {|
+type Menu record {|
     # The ID of the menu
     int id;
     # The name of the menu
@@ -24,7 +25,7 @@ public type Menu record {|
 |};
 
 # Represents a menu item
-public type MenuItem record {|
+type MenuItem record {|
     # The ID of the menu item
     int id;
     # The name of the menu item
@@ -33,13 +34,52 @@ public type MenuItem record {|
     decimal price;
 |};
 
+# Represents a ticket
+type Ticket record {|
+    # The ID of the ticket
+    int id;
+    # The restaurant associated with the ticket
+    Restaurant restaurant;
+    # The order associated with the ticket
+    Order 'order;
+    # The current state of the ticket
+    TicketState status;
+|};
+
+enum TicketState {
+    ACCEPTED = "ACCEPTED",
+    PREPARING = "PREPARING",
+    READY = "READY",
+    PICKED_UP = "PICKED_UP"
+}
+
+# Represents an order
+type Order record {
+    # The ID of the order
+    int id;
+    # The items contained within the order
+    OrderItem[] orderItems;
+};
+
+# Represents and order item
+type OrderItem record {
+    # The ID of the order item
+    int id;
+    # The menu item relevant to the order item
+    MenuItem menuItem;
+    # The quantity of menu items requested in the order item
+    int quantity;
+};
+
 configurable string USER = ?;
 configurable string PASSWORD = ?;
 configurable string HOST = ?;
 configurable int PORT = ?;
 configurable string DATABASE = ?;
+configurable string ORDER_ENDPOINT = ?;
 
 final mysql:Client dbClient = check new(host=HOST, user=USER, password=PASSWORD, port=PORT, database="Restaurant");
+final http:Client orderEndpoint = check new(ORDER_ENDPOINT);
 
 # Creates a new restaurant. This method does not manage the creation of menus under the restaurant.
 #
@@ -236,4 +276,80 @@ public isolated function getParentMenu(int menuItemId) returns Menu|error {
 public isolated function getParentRestaurant(int menuId) returns Restaurant|error {
     int restaurantId = check dbClient->queryRow(`SELECT restaurantId FROM Menus WHERE id=${menuId}`);
     return getRestaurant(restaurantId);
+}
+
+# Creates a new ticket.
+# 
+# + restaurantId - The ID of the restaurant associated with the ticket  
+# + orderId - The ID of the order associated with the ticket
+# + return - The details of the ticket if the creation was successful. An error if unsuccessful
+isolated function createTicket(int restaurantId, int orderId) returns Ticket|error {
+    sql:ExecutionResult result = check dbClient->execute(`INSERT INTO Tickets (restaurantId, orderId, status) VALUES (${restaurantId}, ${orderId}, ${ACCEPTED})`);
+    int|string? generatedTicketId = result.lastInsertId;
+    if generatedTicketId is string? {
+        return error("Unable to retrieve generated ID of ticket.");
+    }
+
+    return <Ticket>{
+        id: generatedTicketId,
+        restaurant: check getRestaurant(restaurantId),
+        'order: check getOrderDetails(orderId),
+        status: ACCEPTED
+    };
+}
+
+# Retrives a ticket.
+# 
+# + id - The ID of the ticket  
+# + return - The details of the ticket if the retrieval was successful. An error if unsuccessful
+isolated function getTicket(int id) returns Ticket|error {
+    record {|
+        int id;
+        int restaurantId;
+        int orderId;
+        string status;
+    |} ticketRow = check dbClient->queryRow(`SELECT id, restaurantId, orderId, status FROM Tickets WHERE id=${id}`);
+
+    return <Ticket>{
+        id: ticketRow.id,
+        restaurant: check getRestaurant(ticketRow.restaurantId),
+        'order: check getOrderDetails(ticketRow.orderId),
+        status: <TicketState>ticketRow.status
+    };
+}
+
+# Updates the status of a  ticket.
+# 
+# + id - The ID of the ticket to be updated
+# + newStatus - The status to be changed to  
+# + return - The details of the ticket if the creation was successful. An error if unsuccessful
+isolated function updateTicket(int id, TicketState newStatus) returns Ticket|error {
+    _ = check dbClient->execute(`UPDATE Tickets SET status=${newStatus} WHERE id=${id}`);
+    return getTicket(id);
+}
+
+# Retrieves the details of an order
+#
+# + orderId - The ID of the order for which the detailes are required
+# + return - The details of the order if the retrieval was successful. An error if unsuccessful
+isolated function getOrderDetails(int orderId) returns Order|error {
+    Order 'order = check orderEndpoint->get(orderId.toString());
+    OrderItem[] orderItems = [];
+
+    foreach OrderItem orderItem in 'order.orderItems {
+        orderItems.push(<OrderItem>{
+            id: orderItem.id,
+            menuItem: {
+                id: orderItem.menuItem.id,
+                name: orderItem.menuItem.name,
+                price: orderItem.menuItem.price
+            },
+            quantity: orderItem.quantity
+        });
+    }
+
+    return <Order>{
+        id: orderId,
+        orderItems: orderItems
+    };
 }

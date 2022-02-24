@@ -20,3 +20,11 @@ CREATE TABLE IF NOT EXISTS Restaurant.MenuItems (
     menuId  INTEGER         NOT NULL,
     FOREIGN KEY (menuId) REFERENCES Restaurant.Menus(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS Restaurant.Tickets (
+    id      INTEGER         AUTO_INCREMENT PRIMARY KEY,
+    restaurantId    INTEGER NOT NULL,
+    orderId INTEGER         NOT NULL,
+    status  VARCHAR(25)     NOT NULL,
+    FOREIGN KEY (restaurantId) REFERENCES Restaurant.Restaurants(id) ON DELETE CASCADE
+);

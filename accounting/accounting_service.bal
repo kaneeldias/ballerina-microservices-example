@@ -1,4 +1,5 @@
 import ballerina/http;
+import ballerina/log;
 import ballerina/sql;
 
 # Request body to be used when charging a consumer
@@ -60,6 +61,7 @@ service on new http:Listener(8083) {
     # + return - `ConsumerCharged` if the charge was successfully initiated.
     #            `InternalError` if an unexpected error occurs
     isolated resource function post charge(@http:Payload ChargeRequest request) returns ConsumerCharged|InternalError {
+        log:printInfo("Charge request", request = request);
         do {
             Bill generatedBill = check createBill(request.consumerId, request.orderId, request.orderAmount);
             check chargeConsumer(request.consumerId, request.orderAmount);
