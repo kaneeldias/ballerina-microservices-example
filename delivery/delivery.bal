@@ -9,14 +9,23 @@ enum DeliveryState {
     DELIVERED = "DELIVERED"
 }
 
+# Represents a delivery
 type Delivery record {|
+    # The ID of the delivery  
     int id;
+    # The order associated with the delivery  
     Order 'order;
+    # The courier assigned to to carry out the delivery  
     Courier courier;
+    # The address of the retaurant from which the order should be picked up  
     string pickUpAddress;
+    # The timestamp at which the order was picked up. `()` if the order is not yet picked up
     time:Civil? pickUpTime;
+    # The address to which the order should be delivered to  
     string deliveryAddress;
+    # The timestamp at which the order was delivered. `()` if the order is not yet delivered   
     time:Civil? deliveryTime;
+    # The current status of the delivery
     DeliveryState status;
 |};
 
@@ -58,6 +67,12 @@ configurable string ORDER_ENDPOINT = ?;
 final mysql:Client dbClient = check new(host=HOST, user=USER, password=PASSWORD, port=PORT, database=DATABASE);
 final http:Client orderEndpoint = check new(ORDER_ENDPOINT);
 
+# Schedules a delivery
+#
+# + orderId - The ID of the order associated with the delivery  
+# + pickUpAddress - The address from which the order should be picked up
+# + deliveryAddress - The address to which the order should be delivered to
+# + return - The details of the delivery if the scheduling was successful. An error if unsuccessful
 isolated function scheduleDelivery(int orderId, string pickUpAddress, string deliveryAddress) returns Delivery|error {
     Courier availableCourier = check getAvailableCourier(pickUpAddress);
     sql:ExecutionResult result = check dbClient->execute(`
@@ -81,6 +96,10 @@ isolated function scheduleDelivery(int orderId, string pickUpAddress, string del
     };
 }
 
+# Retrives the details of a delivery
+#
+# + id - The ID of the delivery
+# + return - The details of the delivery if the retrieval was successful. An error if unsuccessful
 isolated function getDelivery(int id) returns Delivery|error {
     record {|
         int id;
@@ -109,6 +128,11 @@ isolated function getDelivery(int id) returns Delivery|error {
     };
 }
 
+# Updates the status of a delivery
+#
+# + id - The ID of the delivery  
+# + newStatus - The status to which the delivery should be updated to
+# + return - The details of the delivery if the update  was successful. An error if unsuccessful
 isolated function updateDelivery(int id, DeliveryState newStatus) returns Delivery|error {
     _ = check dbClient->execute(`UPDATE Deliveries SET status=${newStatus} WHERE id=${id}`);
 

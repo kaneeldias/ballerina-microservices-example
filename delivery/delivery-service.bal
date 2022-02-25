@@ -59,7 +59,7 @@ type CourierNotFound record {|
     *http:NotFound;
     # Error message
     readonly record {} body = { 
-        "message": "Consumer cannot be found." 
+        "message": "Courier cannot be found." 
     };
 |};
 
@@ -68,7 +68,7 @@ type DeliveryNotFound record {|
     *http:NotFound;
     # Error message
     readonly record {} body = { 
-        "message": "Consumer cannot be found." 
+        "message": "Delivery cannot be found." 
     };
 |};
 
@@ -129,6 +129,11 @@ service  on new http:Listener(8084) {
         }       
     }
 
+    # Resource function to schedule a new delivery
+    #
+    # + request - The details of the delivery
+    # + return - `DeliveryScheduled` if the delivery is successfully scheduled.
+    #            `InternalError` if an unexpected error occurs
     isolated resource function post delivery/schedule(@http:Payload ScheduleDeliveryRequest request) returns DeliveryScheduled|InternalError{
         log:printInfo("Schedule delivery request", request = request);
         do {
@@ -145,6 +150,12 @@ service  on new http:Listener(8084) {
         }     
     }
 
+    # Resource function to fetch the details of a delivery
+    #
+    # + id - The ID of the requested consumer
+    # + return - `DeliveryView` if the details are successfully fetched.
+    #            `DeliveryNotFound` if a delivery with the provided ID was not found.
+    #            `InternalError` if an unexpected error occurs
     isolated resource function get delivery/[int id]() returns DeliveryView|DeliveryNotFound|InternalError{
         do {
             Delivery delivery = check getDelivery(id);
@@ -162,16 +173,35 @@ service  on new http:Listener(8084) {
         }     
     }
 
+    # Resource function to change the status of a delivery to `PICKED_UP`
+    #
+    # + id - The ID of the delivery
+    # + return - `DeliveryView` if the details are successfully fetched.
+    #            `DeliveryNotFound` if a delivery with the provided ID was not found.
+    #            `InternalError` if an unexpected error occurs
     isolated resource function put delivery/[int id]/update/pickedUp() returns DeliveryView|DeliveryNotFound|InternalError {
         return changeDeliveryStatus(id, PICKED_UP);           
     }
 
+    # Resource function to change the status of a delivery to `DELIVERED`
+    #
+    # + id - The ID of the delivery
+    # + return - `DeliveryView` if the details are successfully fetched.
+    #            `DeliveryNotFound` if a delivery with the provided ID was not found.
+    #            `InternalError` if an unexpected error occurs
     isolated resource function put delivery/[int id]/update/delivered() returns DeliveryView|DeliveryNotFound|InternalError {
         return changeDeliveryStatus(id, DELIVERED);           
     }
 
 }
 
+# Changes the status of a delivery
+#
+# + id - The ID of the delivery  
+# + newStatus - The new status of the delivery
+# + return - `DeliveryView` if the details are successfully fetched.
+#            `DeliveryNotFound` if a delivery with the provided ID was not found.
+#            `InternalError` if an unexpected error occurs
 isolated function changeDeliveryStatus(int id, DeliveryState newStatus) returns DeliveryView|DeliveryNotFound|InternalError {
     do {
         Delivery delivery = check updateDelivery(id, newStatus);
