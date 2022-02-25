@@ -91,7 +91,7 @@ service /consumer on new http:Listener(8080) {
     #
     # + request - Details of the consumer to be created
     # + return - `ConsumerCreated` if the consumer was sucessfully created.
-    #            `ConsumerInternalError` if an unexpected error occurs.
+    #            `InternalError` if an unexpected error occurs.
     isolated resource function post .(@http:Payload ConsumerRequest request) returns ConsumerCreated|InternalError {
         do {
             Consumer generatedConsumer = check createConsumer(request.name, request.address, request.email);
@@ -114,7 +114,7 @@ service /consumer on new http:Listener(8080) {
     # + id - The ID of the requested consumer
     # + return - `ConsumerView` if the details are successfully fetched.
     #            `ConsumerNotFound` if a consumer with the provided ID was not found.
-    #            `ConsumerInternalError` if an unexpected error occurs
+    #            `InternalError` if an unexpected error occurs
     isolated resource function get [int id]() returns ConsumerView|ConsumerNotFound|InternalError {
         do {
             Consumer consumer = check getConsumer(id);
@@ -137,7 +137,7 @@ service /consumer on new http:Listener(8080) {
     # + id - The ID of the consumer to be deleted
     # + return - `ConsumerDeleted` if the consumer was successfully deleted.
     #            `ConsumerNotFound` if a consumer with the provided ID was not found.
-    #            `ConsumerInternalError` if an unexpected error occurs
+    #            `InternalError` if an unexpected error occurs
     isolated resource function delete [int id]() returns ConsumerDeleted|ConsumerNotFound|InternalError {
         do {
             Consumer consumer = check deleteConsumer(id);
@@ -155,7 +155,7 @@ service /consumer on new http:Listener(8080) {
     # + id - The ID of the consumer to be updated  
     # + request - Details of the consumer to be updated
     # + return - `ConsumerUpdated` if the consumer was successfully updated.
-    #            `ConsumerInternalError` if an unexpected error occurs
+    #            `InternalError` if an unexpected error occurs
     isolated resource function put [int id](@http:Payload ConsumerRequest request) returns ConsumerUpdated|InternalError {
         do {
             Consumer updatedConsumer = check updateConsumer(id, request.name, request.address, request.email);

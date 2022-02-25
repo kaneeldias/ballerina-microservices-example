@@ -45,6 +45,16 @@ type OrderItemCreated record {|
     |} body;
 |};
 
+# Response for a successful order update
+type OrderUpdated record {|
+    *http:Ok;
+    # Details of the created order along with the links to manage it
+    record {|
+        *Order;
+        *http:Links;
+    |} body;
+|};
+
 # Error response for when the requested order cannot be found
 type OrderNotFound record {|
     *http:NotFound;
@@ -226,11 +236,35 @@ service /'order on new http:Listener(8082) {
     # + return - `OrderConfirmed` if the order was successfully confirmed.
     #            `OrderNotFound` if a order with the provided ID was not found.
     #            `InternalError` if an unexpected error occurs
-    isolated resource function get [int id]/confirm() returns OrderConfirmed|OrderNotFound|InternalError|error {
+    isolated resource function get [int id]/confirm() returns OrderConfirmed|OrderNotFound|InternalError {
         log:printInfo("Order confirm request", orderId = id);
         do {
             Order 'order = check confirmOrder(id);
             return <OrderConfirmed> { body: 'order };
+        } on fail error e {
+            if e is sql:NoRowsError {
+                return <OrderNotFound>{};
+            }
+            return <InternalError>{ body: { message: e.message() }};
+        }
+    }
+
+    # Resource function to update the status a placed order
+    #
+    # + id - The ID of the order to be confirmed
+    # + return - `OrderConfirmed` if the order was successfully confirmed.
+    #            `OrderNotFound` if a order with the provided ID was not found.
+    #            `InternalError` if an unexpected error occurs
+    isolated resource function put [int id]/updateStatus/[string newStatus]() returns OrderUpdated|OrderNotFound|InternalError {
+        log:printInfo("Order status update request", orderId = id, newStatus = newStatus);
+        do {
+            Order 'order = check changeOrderStatus(id, <OrderState>newStatus);
+            return <OrderUpdated> { 
+                body: {
+                    ...'order,
+                    links: getOrderLinks(id) 
+                }
+            };
         } on fail error e {
             if e is sql:NoRowsError {
                 return <OrderNotFound>{};

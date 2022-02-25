@@ -622,6 +622,7 @@ service on new http:Listener(8081) {
     }
 
     isolated resource function put restaurant/[int restaurantId]/ticket/[int id]/markPreparing() returns TicketUpdated|TicketNotFound|InternalError {
+        log:printInfo("Update ticket status to preparing request", restaurantId = restaurantId, ticketId = id);
         do {
             Ticket updatedTicket = check updateTicket(id, PREPARING);
             return <TicketUpdated>{
@@ -631,6 +632,7 @@ service on new http:Listener(8081) {
                 }
             };
         } on fail error e {
+            log:printError("Error updating ticket status", 'error = e, stackTrace = e.stackTrace());
             if e is sql:NoRowsError {
                 return <TicketNotFound>{};
             }
@@ -640,7 +642,7 @@ service on new http:Listener(8081) {
 
     isolated resource function put restaurant/[int restaurantId]/ticket/[int id]/markReady() returns TicketUpdated|TicketNotFound|InternalError {
         do {
-            Ticket updatedTicket = check updateTicket(id, READY);
+            Ticket updatedTicket = check updateTicket(id, READY_FOR_PICKUP);
             return <TicketUpdated>{
                 body: {
                     ...updatedTicket,

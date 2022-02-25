@@ -12,17 +12,22 @@ configurable string CONSUMER_ENDPOINT = ?;
 configurable string RESTAURANT_ENDPOINT = ?;
 configurable string MENU_ITEM_ENDPOINT = ?;
 configurable string ACCOUNTING_ENDPOINT = ?;
+configurable string DELIVERY_ENDPOINT = ?;
+
 
 final mysql:Client dbClient = check new(host=HOST, user=USER, password=PASSWORD, port=PORT, database=DATABASE);
 final http:Client consumerEndpoint = check new(CONSUMER_ENDPOINT);
 final http:Client restaurantEndpoint = check new(RESTAURANT_ENDPOINT);
 final http:Client menuItemEndpoint = check new(MENU_ITEM_ENDPOINT);
 final http:Client accountingEndpoint = check new(ACCOUNTING_ENDPOINT);
+final http:Client deliveryEndpoint = check new(DELIVERY_ENDPOINT);
+
 
 enum OrderState {
     APPROVAL_PENDING = "APPROVAL_PENDING",
     APPROVED = "APPROVED",
     REJECTED = "REJECTED",
+    ACCEPTED = "ACCEPTED",
     PREPARING = "PREPARING",
     READY_FOR_PICKUP = "READY_FOR_PICKUP",
     PICKED_UP = "PICKED_UP",
@@ -64,6 +69,8 @@ type Consumer record {
     int id;
     # The name of the consumer
     string name;
+    # The address of the consumer
+    string address;
 };
 
 # Represents a restaurant
@@ -72,6 +79,8 @@ type Restaurant record {
     int id;
     # The name of the restaurant
     string name;
+    # The address of the restaurant
+    string address;
 };
 
 # Represents a menu item
@@ -279,7 +288,18 @@ isolated function getOrderItems(int orderId) returns OrderItem[]|error {
 # + return - The details of the order if the status change was successful. An error if unsuccessful
 isolated function changeOrderStatus(int orderId, OrderState newStatus) returns Order|error {
     _ = check dbClient->execute(`UPDATE Orders SET status=${newStatus.toString()} WHERE id = ${orderId}`);
+
     Order 'order = check getOrder(orderId);
+    if newStatus is READY_FOR_PICKUP {
+        http:Request deliveryScheduleRequest = new;
+        deliveryScheduleRequest.setJsonPayload({
+            orderId: orderId,
+            pickUpAddress: 'order.restaurant.address,
+            deliveryAddress: 'order.consumer.address
+        });
+        _ = check deliveryEndpoint->post("schedule", deliveryScheduleRequest, targetType = json);
+    }
+
     return 'order;
 }
 
@@ -333,7 +353,8 @@ isolated function getConsumerDetails(int consumerId) returns Consumer|error {
     Consumer consumer = check consumerEndpoint->get(consumerId.toString());
     return <Consumer>{
         id: consumerId,
-        name: consumer.name
+        name: consumer.name,
+        address: consumer.address
     };
 }
 
@@ -345,7 +366,8 @@ isolated function getRestaurantDetails(int restaurantId) returns Restaurant|erro
     Restaurant restaurant = check restaurantEndpoint->get(restaurantId.toString());
     return <Restaurant>{
         id: restaurantId,
-        name: restaurant.name
+        name: restaurant.name,
+        address: restaurant.address
     };
 }
 

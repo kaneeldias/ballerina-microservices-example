@@ -42,6 +42,7 @@ configurable string DATABASE = ?;
 configurable string ORDER_ENDPOINT = ?;
 
 final mysql:Client dbClient = check new(host=HOST, user=USER, password=PASSWORD, port=PORT, database="Restaurant");
+final http:Client orderEndpoint = check new(ORDER_ENDPOINT);
 
 # Creates a new restaurant. This method does not manage the creation of menus under the restaurant.
 #

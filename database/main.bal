@@ -12,7 +12,6 @@ public function main() returns error? {
     mysql:Client dbClient = check new(host=HOST, user=USER, password=PASSWORD, port=PORT);
 
     // Accounting 
-    _ = check dbClient->execute(`DROP DATABASE IF EXISTS Accounting;`);
     _ = check dbClient->execute(`CREATE DATABASE IF NOT EXISTS Accounting;`);
     _ = check dbClient->execute(`
         CREATE TABLE IF NOT EXISTS Accounting.bills (
@@ -88,11 +87,34 @@ public function main() returns error? {
     `);
     _ = check dbClient->execute(`
         CREATE TABLE IF NOT EXISTS Restaurant.Tickets (
-            id      INTEGER         AUTO_INCREMENT PRIMARY KEY,
-            restaurantId    INTEGER NOT NULL,
-            orderId INTEGER         NOT NULL,
-            status  VARCHAR(25)     NOT NULL,
+            id              INTEGER         AUTO_INCREMENT PRIMARY KEY,
+            restaurantId    INTEGER         NOT NULL,
+            orderId         INTEGER         NOT NULL,
+            status          VARCHAR(25)     NOT NULL,
             FOREIGN KEY (restaurantId) REFERENCES Restaurant.Restaurants(id) ON DELETE CASCADE
         );
     `);
+
+    // Delivery 
+    _ = check dbClient->execute(`CREATE DATABASE IF NOT EXISTS Delivery;`);
+    _ = check dbClient->execute(`
+        CREATE TABLE IF NOT EXISTS Delivery.Couriers (
+            id      INTEGER     AUTO_INCREMENT PRIMARY KEY,
+            name    VARCHAR(50) NOT NULL
+        )
+    `);
+    _ = check dbClient->execute(`
+        CREATE TABLE IF NOT EXISTS Delivery.Deliveries (
+            id              INTEGER         AUTO_INCREMENT PRIMARY KEY,
+            orderId         INTEGER         NOT NULL,
+            courierId       INTEGER         NOT NULL,
+            pickUpAddress   VARCHAR(255)    NOT NULL,
+            pickUpTime      TIMESTAMP,
+            deliveryAddress VARCHAR(255)    NOT NULL,
+            deliveryTime    TIMESTAMP,
+            status          VARCHAR(25)     NOT NULL,
+            FOREIGN KEY (courierId) REFERENCES Delivery.Couriers(id) ON DELETE CASCADE
+        )
+    `);
+
 }

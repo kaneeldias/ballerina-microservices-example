@@ -1,11 +1,10 @@
 import ballerina/sql;
-import ballerinax/mysql;
-import ballerina/http;
+import ballerina/log;
 
 enum TicketState {
     ACCEPTED = "ACCEPTED",
     PREPARING = "PREPARING",
-    READY = "READY",
+    READY_FOR_PICKUP = "READY_FOR_PICKUP",
     PICKED_UP = "PICKED_UP"
 }
 
@@ -38,8 +37,6 @@ type OrderItem record {
     # The quantity of menu items requested in the order item
     int quantity;
 };
-
-final http:Client orderEndpoint = check new(ORDER_ENDPOINT);
 
 # Creates a new ticket.
 # 
@@ -85,10 +82,13 @@ isolated function getTicket(int id) returns Ticket|error {
 # 
 # + id - The ID of the ticket to be updated
 # + newStatus - The status to be changed to  
-# + return - The details of the ticket if the creation was successful. An error if unsuccessful
+# + return - The details of the ticket if the update was successful. An error if unsuccessful
 isolated function updateTicket(int id, TicketState newStatus) returns Ticket|error {
     _ = check dbClient->execute(`UPDATE Tickets SET status=${newStatus} WHERE id=${id}`);
-    return getTicket(id);
+    Ticket ticket = check getTicket(id);
+    log:printInfo(ticket.'order.id.toString() + "/updateStatus/" + newStatus.toString());
+    _ = check orderEndpoint->put(ticket.'order.id.toString() + "/updateStatus/" + newStatus.toString(), message = (), targetType = json);
+    return ticket;
 }
 
 # Retrieves the details of an order
