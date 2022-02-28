@@ -2,4 +2,4 @@ HOST="localhost"
 USER="root"
 PASSWORD="Test123#"
 PORT=3305
-DATABASE="ConsumerTest"
+DATABASE="Consumer"

@@ -12,7 +12,7 @@ type ConsumerViewRecord record {|
     *http:Links;
 |};
 
-http:Client consumerClient = check new("http://localhost:8081/restaurant/");
+http:Client consumerClient = check new("http://localhost:8080/consumer/");
 
 @test:Config {
     groups: ["create-consumer"]
