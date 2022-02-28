@@ -461,7 +461,7 @@ service on new http:Listener(8081) {
     # + restaurantId - The ID of the restaurant to be deleted
     # + return - `RestaurantDeleted` if the restaurant was successfully deleted.
     #            `RestaurantNotFound` if a restaurant with the provided ID was not found.
-    #            `RestaurantInternalError` if an unexpected error occurs
+    #            `InternalError` if an unexpected error occurs
     isolated resource function delete restaurant/[int restaurantId]() returns RestaurantDeleted|RestaurantNotFound|InternalError {
         do {
             Restaurant restaurant = check deleteRestaurant(restaurantId);
@@ -480,7 +480,7 @@ service on new http:Listener(8081) {
     # + menuId - The ID of the menu to be deleted
     # + return - `MenuDeleted` if the menu was successfully deleted.
     #            `MenuNotFound` if a menu with the provided ID was not found.
-    #            `RestaurantInternalError` if an unexpected error occurs
+    #            `InternalError` if an unexpected error occurs
     isolated resource function delete restaurant/[int restaurantId]/menu/[int menuId]() returns MenuDeleted|MenuNotFound|InternalError {
         do {
             Menu menu = check deleteMenu(menuId);
@@ -500,7 +500,7 @@ service on new http:Listener(8081) {
     # + menuItemId - The ID of the menu item to be deleted
     # + return - `MenuItemDeleted` if the menu item was successfully deleted.
     #            `MenuItemNotFound` if a menu item with the provided ID was not found.
-    #            `RestaurantInternalError` if an unexpected error occurs
+    #            `InternalError` if an unexpected error occurs
     isolated resource function delete restaurant/[int restaurantId]/menu/[int menuId]/menuItem/[int menuItemId]() returns MenuItemDeleted|MenuItemNotFound|InternalError {
          do {
             MenuItem menuitem = check deleteMenuItem(menuItemId);
@@ -519,7 +519,7 @@ service on new http:Listener(8081) {
     # + request - Details of the restaurant to be updated
     # + return - `RestaurantUpdated` if the restaurant was successfully updated.
     #            `RestaurantNotFound` if a restaurant with the provided ID was not found.
-    #            `RestaurantInternalError` if an unexpected error occurs
+    #            `InternalError` if an unexpected error occurs
     isolated resource function put restaurant/[int restaurantId](@http:Payload UpdateRestaurantRequest request) returns RestaurantUpdated|RestaurantNotFound|InternalError {
         do {
             Restaurant updatedRestaurant = check updateRestaurant(restaurantId, request.name, request.address);
@@ -544,7 +544,7 @@ service on new http:Listener(8081) {
     # + request - Details of the menu to be updated
     # + return - `MenuUpdated` if the menu was successfully updated.
     #            `MenuNotFound` if a menu with the provided ID was not found.
-    #            `RestaurantInternalError` if an unexpected error occurs
+    #            `InternalError` if an unexpected error occurs
     isolated resource function put restaurant/[int restaurantId]/menu/[int menuId](@http:Payload UpdateMenuRequest request) returns MenuUpdated|MenuNotFound|InternalError {
         do {
             Menu updatedMenu = check updateMenu(menuId, request.name);
@@ -570,7 +570,7 @@ service on new http:Listener(8081) {
     # + request - Details of the menu item to be updated
     # + return - `MenuItemUpdated` if the menu was successfully updated.
     #            `MenuItemNotFound` if a menu with the provided ID was not found.
-    #            `RestaurantInternalError` if an unexpected error occurs
+    #            `InternalError` if an unexpected error occurs
     isolated resource function put restaurant/[int restaurantId]/menu/[int menuId]/item/[int menuItemId](@http:Payload UpdateMenuItemRequest request) returns MenuItemUpdated|MenuItemNotFound|InternalError {
         do {
             MenuItem updatedMenuItem = check updateMenuItem(menuItemId, request.name, request.price);
@@ -588,6 +588,12 @@ service on new http:Listener(8081) {
         }  
     }
 
+    # Create a new ticket
+    #
+    # + restaurantId - The ID of the restaurant under which the ticket should be created  
+    # + request - The details related to the ticker
+    # + return - `TicketCreated` if the ticket was successfully created.
+    #            `InternalError` if an unexpected error occurs
     isolated resource function post restaurant/[int restaurantId]/ticket(@http:Payload CreateTicketRequest request) returns TicketCreated|InternalError {
         log:printInfo("Ticket create request", restaurantId = restaurantId, request = request);
         do {
@@ -604,7 +610,14 @@ service on new http:Listener(8081) {
         }  
     }
 
-     isolated resource function get restaurant/[int restaurantId]/ticket/[int id]() returns TicketView|TicketNotFound|InternalError {
+    # Retrieves the details for a ticket
+    #
+    # + restaurantId - The ID of the restaurant to which the ticket belongs to  
+    # + id - The ID of the ticket
+    # + return - `TicketView` if the ticket was successfully retrieved.
+    #            `TicketNotFound` if a ticket with the provided ID cannot be found.
+    #            `InternalError` if an unexpected error occurs
+    isolated resource function get restaurant/[int restaurantId]/ticket/[int id]() returns TicketView|TicketNotFound|InternalError {
         do {
             Ticket ticket = check getTicket(id);
             return <TicketView>{ 
@@ -621,7 +634,14 @@ service on new http:Listener(8081) {
         }  
     }
 
-    isolated resource function put restaurant/[int restaurantId]/ticket/[int id]/markPreparing() returns TicketUpdated|TicketNotFound|InternalError {
+    # Marks the status of a ticket as `PREPARING`
+    #
+    # + restaurantId - The ID of the restaurant to which the ticket belongs to  
+    # + id - The ID of the ticket
+    # + return - `TicketUpdated` if the ticket was successfully updated.
+    #            `TicketNotFound` if a ticket with the provided ID cannot be found.
+    #            `InternalError` if an unexpected error occurs
+    isolated resource function put restaurant/[int restaurantId]/ticket/[int id]/mark/preparing() returns TicketUpdated|TicketNotFound|InternalError {
         log:printInfo("Update ticket status to preparing request", restaurantId = restaurantId, ticketId = id);
         do {
             Ticket updatedTicket = check updateTicket(id, PREPARING);
@@ -640,7 +660,14 @@ service on new http:Listener(8081) {
         } 
     }
 
-    isolated resource function put restaurant/[int restaurantId]/ticket/[int id]/markReady() returns TicketUpdated|TicketNotFound|InternalError {
+    # Marks the status of a ticket as `READY`
+    #
+    # + restaurantId - The ID of the restaurant to which the ticket belongs to  
+    # + id - The ID of the ticket
+    # + return - `TicketUpdated` if the ticket was successfully updated.
+    #            `TicketNotFound` if a ticket with the provided ID cannot be found.
+    #            `InternalError` if an unexpected error occurs
+    isolated resource function put restaurant/[int restaurantId]/ticket/[int id]/mark/ready() returns TicketUpdated|TicketNotFound|InternalError {
         do {
             Ticket updatedTicket = check updateTicket(id, READY_FOR_PICKUP);
             return <TicketUpdated>{
@@ -657,7 +684,14 @@ service on new http:Listener(8081) {
         } 
     }
 
-    isolated resource function put restaurant/[int restaurantId]/ticket/[int id]/markPickedUp() returns TicketUpdated|TicketNotFound|InternalError {
+    # Marks the status of a ticket as `PICKED UP`
+    #
+    # + restaurantId - The ID of the restaurant to which the ticket belongs to  
+    # + id - The ID of the ticket
+    # + return - `TicketUpdated` if the ticket was successfully updated.
+    #            `TicketNotFound` if a ticket with the provided ID cannot be found.
+    #            `InternalError` if an unexpected error occurs
+    isolated resource function put restaurant/[int restaurantId]/ticket/[int id]/mark/pickedUp() returns TicketUpdated|TicketNotFound|InternalError {
         do {
             Ticket updatedTicket = check updateTicket(id, PICKED_UP);
             return <TicketUpdated>{
