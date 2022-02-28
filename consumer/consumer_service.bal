@@ -156,7 +156,7 @@ service /consumer on new http:Listener(8080) {
     # + request - Details of the consumer to be updated
     # + return - `ConsumerUpdated` if the consumer was successfully updated.
     #            `InternalError` if an unexpected error occurs
-    isolated resource function put [int id](@http:Payload ConsumerRequest request) returns ConsumerUpdated|InternalError {
+    isolated resource function put [int id](@http:Payload ConsumerRequest request) returns ConsumerUpdated|ConsumerNotFound|InternalError {
         do {
             Consumer updatedConsumer = check updateConsumer(id, request.name, request.address, request.email);
             return <ConsumerUpdated>{ 
@@ -166,6 +166,9 @@ service /consumer on new http:Listener(8080) {
                 }
             };
         } on fail error e {
+            if e is sql:NoRowsError {
+                return <ConsumerNotFound>{};
+            }
             return <InternalError>{ body: { message: e.message() }};
         }       
     }

@@ -1,5 +1,5 @@
-import ballerinax/mysql;
 import ballerina/sql;
+import ballerinax/mysql;
 
 # Represents a consumer
 public type Consumer record {|
@@ -69,10 +69,5 @@ isolated function deleteConsumer(int consumerId) returns Consumer|error {
 # + return - The details of the consumer if the update was successful. An error if unsuccessful
 isolated function updateConsumer(int id, string name, string address, string email) returns Consumer|error {
     _ = check dbClient->execute(`UPDATE Consumers SET name=${name}, address=${address}, email=${email} WHERE id = ${id}`);
-    return <Consumer>{
-        id: id,
-        name: name,
-        address: address,
-        email: email
-    };
+    return getConsumer(id);
 }
