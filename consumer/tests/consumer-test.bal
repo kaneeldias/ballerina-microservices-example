@@ -3,22 +3,16 @@ import ballerina/log;
 import ballerina/http;
 
 type ConsumerCreatedRecord record {|
-    int id;
-    string name;
-    string address;
-    string email;
+    *Consumer;
     *http:Links;
 |};
 
 type ConsumerViewRecord record {|
-    int id;
-    string name;
-    string address;
-    string email;
+    *Consumer;
     *http:Links;
 |};
 
-http:Client consumerClient = check new("http://localhost:8080/consumer/");
+http:Client consumerClient = check new("http://localhost:8081/restaurant/");
 
 @test:Config {
     groups: ["create-consumer"]
