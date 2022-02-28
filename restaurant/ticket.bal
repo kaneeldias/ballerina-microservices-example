@@ -17,7 +17,7 @@ type Ticket record {|
     # The order associated with the ticket
     Order 'order;
     # The current state of the ticket
-    TicketState status;
+    string status;
 |};
 
 # Represents an order
