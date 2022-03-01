@@ -1,11 +1,6 @@
 import ballerina/http;
 import ballerina/test;
 
-type OrderCreatedRecord record {|
-    *Order;
-    *http:Links;
-|};
-
 http:Client orderClient = check new("http://localhost:8082/order/");
 
 @test:Config {
@@ -119,7 +114,10 @@ function getOrderTest() returns error? {
         ]
     };
     createOrderRequest.setJsonPayload(createOrderPayload.toJson());
-    Order createdOrder = check orderClient->post("", createOrderRequest);
+    record {|
+        *Order;
+        *http:Links;
+    |} createdOrder = check orderClient->post("", createOrderRequest);
 
     http:Response response = check orderClient->get(createdOrder.id.toString());
     test:assertEquals(response.statusCode, 200);
@@ -128,8 +126,111 @@ function getOrderTest() returns error? {
         *Order;
         *http:Links;
     |} returnData = check (check response.getJsonPayload()).cloneWithType();
-    validateOrder(createOrderPayload, returnData);
     test:assertEquals(returnData.links.length(), 3);
+}
+
+@test:Config {
+    groups: ["get-order"]
+}
+function getOrderTestNegative() returns error? {
+    http:Request createOrderRequest = new;
+    CreateOrderRequest createOrderPayload = {
+        consumerId: 1,
+        restaurantId: 1,
+        deliveryAddress: "Test delivery addrress",
+        deliveryTime: {
+            year: 2022,
+            month: 3,
+            day: 1,
+            hour: 17,
+            minute: 30
+        },
+        orderItems: [
+            { menuItemId: 1, quantity: 3 },
+            { menuItemId: 2, quantity: 2 }
+        ]
+    };
+    createOrderRequest.setJsonPayload(createOrderPayload.toJson());
+    record {|
+        *Order;
+        *http:Links;
+    |} createdOrder = check orderClient->post("", createOrderRequest);
+
+    http:Response response = check orderClient->get((createdOrder.id + 1).toString());
+    test:assertEquals(response.statusCode, 404);
+    test:assertEquals(response.getJsonPayload(), { message: "Order cannot be found."});
+}
+
+@test:Config {
+    groups: ["delete-order"]
+}
+function deleteOrderTest() returns error? {
+    http:Request createOrderRequest = new;
+    CreateOrderRequest createOrderPayload = {
+        consumerId: 1,
+        restaurantId: 1,
+        deliveryAddress: "Test delivery addrress",
+        deliveryTime: {
+            year: 2022,
+            month: 3,
+            day: 1,
+            hour: 17,
+            minute: 30
+        },
+        orderItems: [
+            { menuItemId: 1, quantity: 3 },
+            { menuItemId: 2, quantity: 2 }
+        ]
+    };
+    createOrderRequest.setJsonPayload(createOrderPayload.toJson());
+    record {|
+        *Order;
+        *http:Links;
+    |} createdOrder = check orderClient->post("", createOrderRequest);
+
+    http:Response response = check orderClient->get(createdOrder.id.toString());
+    test:assertEquals(response.statusCode, 200);
+
+    response = check orderClient->delete(createdOrder.id.toString());
+    test:assertEquals(response.statusCode, 200);
+
+    response = check orderClient->get(createdOrder.id.toString());
+    test:assertEquals(response.statusCode, 404);
+}
+
+@test:Config {
+    groups: ["delete-order"]
+}
+function deleteOrderTestNegative() returns error? {
+    http:Request createOrderRequest = new;
+    CreateOrderRequest createOrderPayload = {
+        consumerId: 1,
+        restaurantId: 1,
+        deliveryAddress: "Test delivery addrress",
+        deliveryTime: {
+            year: 2022,
+            month: 3,
+            day: 1,
+            hour: 17,
+            minute: 30
+        },
+        orderItems: [
+            { menuItemId: 1, quantity: 3 },
+            { menuItemId: 2, quantity: 2 }
+        ]
+    };
+    createOrderRequest.setJsonPayload(createOrderPayload.toJson());
+    record {|
+        *Order;
+        *http:Links;
+    |} createdOrder = check orderClient->post("", createOrderRequest);
+
+    http:Response response = check orderClient->get(createdOrder.id.toString());
+    test:assertEquals(response.statusCode, 200);
+
+    response = check orderClient->delete((createdOrder.id + 1).toString());
+    test:assertEquals(response.statusCode, 404);
+    test:assertEquals(response.getJsonPayload(), { message: "Order cannot be found."});
 }
 
 

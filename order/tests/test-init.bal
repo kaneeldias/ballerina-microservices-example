@@ -38,8 +38,22 @@ test:MockFunction mockGetRestaurantDetails = new();
 @test:Mock { functionName: "getMenuItem" }
 test:MockFunction mockGetMenuItem = new();
 
+public client class MockConsumersEndpointClient {
+
+    remote function get(@untainted string path, map<string|string[]>? headers = (), http:TargetType targetType = http:Response) returns @tainted http:Response| http:PayloadType | http:ClientError {
+        http:Response response = new;
+        response.statusCode = 200;
+        response.setJsonPayload({
+            id: 1,
+            name: "Test Consumer",
+            address: "Test Address"
+        });
+        return response;
+    }
+}
+
 @test:BeforeSuite
-function testReturn() returns error? {
+function setExternalAPICalls() returns error? {
     test:when(mockGetConsumerDetails).withArguments(1).thenReturn(<Consumer>{
         id: 1,
         name: "Test Consumer",
@@ -64,11 +78,5 @@ function testReturn() returns error? {
         price: 83.12
     });
 
-    http:Response consumerNotFoundResponse = new;
-    consumerNotFoundResponse.statusCode = 404;
-    consumerNotFoundResponse.setJsonPayload({
-        message: "Consumer cannot be found."
-    });
-    test:when(mockGetConsumerDetails).thenReturn(consumerNotFoundResponse);
+    test:when(mockGetConsumerDetails).thenReturn(error("Consumer not found."));
 }
-
