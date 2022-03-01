@@ -122,7 +122,7 @@ service /'order on new http:Listener(8082) {
     # + request - Details of the order to be created. This can also contain information regarding the order items within the order
     # + return - `OrderCreated` if the order was successfully created.
     #            `InternalError` if an unexpected error occurs
-    isolated resource function post .(@http:Payload CreateOrderRequest request) returns OrderCreated|InternalError|error  {
+    isolated resource function post .(@http:Payload CreateOrderRequest request) returns OrderCreated|InternalError  {
         do {
             transaction {
                 Order generatedOrder = check createOrder(request.consumerId, request.restaurantId, request.deliveryAddress, request.deliveryTime);
@@ -145,8 +145,7 @@ service /'order on new http:Listener(8082) {
                 };
             }
         } on fail error e {
-            return e;
-            //return <InternalError>{ body: { message: e.message() }};
+            return <InternalError>{ body: { message: e.message() }};
         }
     }
 

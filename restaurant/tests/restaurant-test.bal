@@ -28,7 +28,6 @@ type RestaurantUpdateRecord record {|
     string address;
 |};
 
-
 http:Client restaurantClient = check new("http://localhost:8081/restaurant/");
 
 @test:Config {
