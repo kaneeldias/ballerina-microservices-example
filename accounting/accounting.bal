@@ -16,7 +16,6 @@ final http:Client consumerEndpoint = check new(CONSUMER_ENDPOINT);
 final http:Client restaurantEndpoint = check new(RESTAURANT_ENDPOINT);
 final http:Client orderEndpoint = check new(ORDER_ENDPOINT);
 
-
 # Represents a bill
 type Bill record {|
     # The ID of the bill
@@ -111,7 +110,7 @@ public isolated function createBill(int consumerId, int orderId, decimal orderAm
 public isolated function getBill(int id) returns Bill|error {
     BillTableRow result = check dbClient->queryRow(`
         SELECT id, consumerId, orderId, orderAmount
-        FROM Bills WHERE id = ${id}
+        FROM bills WHERE id = ${id}
     `);
     return <Bill>{
         id: id,

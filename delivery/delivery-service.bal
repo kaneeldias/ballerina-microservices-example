@@ -102,6 +102,7 @@ service  on new http:Listener(8084) {
                 }
             };
         } on fail error e {
+            log:printError(e.message(), e, e.stackTrace());
             return <InternalError>{ body: { message: e.message() }};
         }
     }

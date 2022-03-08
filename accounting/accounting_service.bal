@@ -12,7 +12,6 @@ type ChargeRequest record {|
     decimal orderAmount;
 |};
 
-
 # Response when a consumer is successfully charged
 type ConsumerCharged record {|
     *http:Ok;
@@ -22,7 +21,6 @@ type ConsumerCharged record {|
         *http:Links;
     |} body;
 |};
-
 
 # Response when a bill is successfully retrieved
 type BillView record {|
@@ -73,6 +71,7 @@ service on new http:Listener(8083) {
                 } 
             };
         } on fail error e {
+            log:printError(e.message(), e, e.stackTrace());
             return <InternalError>{ body: { message: e.message() }};
         }
     }
@@ -93,6 +92,7 @@ service on new http:Listener(8083) {
                 } 
             };
         } on fail error e {
+            log:printError(e.message(), e, e.stackTrace());
             if e is sql:NoRowsError {
                 return <BillNotFound>{};
             }
