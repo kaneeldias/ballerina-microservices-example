@@ -20,6 +20,16 @@ These four services are interacted with by three types of users
 ## Consumer service
 The consumer service represents a customer who places orders through the application.
 
+The data structure of a consumer is as follows
+```ballerina
+public type Consumer record {|
+    int id;
+    string name;
+    string address;
+    string email;
+|};
+```
+
 This service provides four basic endpoints:
 ### 1. Create consumer
 > Endpoint: `/`  
@@ -56,10 +66,37 @@ The consumer service has it's own MySQL database for storing relevant consumer d
 This service also provides the endpoint `<consumerId>/validate` to validate an order placed by a consumer. This method is currently a dummy method, and does not perform any functional business logic. 
 
 ## Restaurant service
-The restaurant service represents a restaurant, with its menu, menu items and prices.
+The restaurant service represents a restaurant, with its menu, menu items and prices. A restaurant can contain multiple menus; and a menu can contain multiple menu items.
+
+The basic data structure of a restaurant and its associated data types are as follows.
+```ballerina
+type Restaurant record {|
+    int id;
+    string name;
+    string address;
+    Menu[] menus;
+|};
+
+type Menu record {|
+    int id;
+    string name;
+    MenuItem[] items;
+|};
+
+type MenuItem record {|
+    int id;
+    string name;
+    decimal price;
+|};
+```
+
+This service provides endpoints to perform basic CRUD functionalities with restaurants, menus and menu items through 12 different endpoints.
+
+### Data storage and retrieval
+The restaurant service has it's own MySQL database for storing relevant restaurant data. Since this service does not access data outside of it's own module, there is no requirement to make any REST API calls to access the other microservices.
 
 ## Order service
-The order service handles orders placed by a consumer for a restaurant
+The order service handles orders placed by a consumer for a restaurant. 
 
 ## Accounting service
 The accounting service calulates the fee to be charged from the consumer and manages the accounting process.
