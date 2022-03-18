@@ -145,7 +145,7 @@ isolated function updateDelivery(int id, DeliveryState newStatus) returns Delive
     }
 
     Delivery delivery = check getDelivery(id);
-    _ = check orderEndpoint->put(delivery.'order.id.toString() + "/updateStatus/" + newStatus.toString(), message = (), targetType = json);
+    check updateOrderStatus(delivery, newStatus);
     return delivery;
 }
 
@@ -173,4 +173,9 @@ isolated function getOrderDetails(int orderId) returns Order|error {
         id: orderId,
         orderItems: orderItems
     };
+}
+
+isolated function updateOrderStatus(Delivery delivery, DeliveryState newStatus) returns error? {
+    _ = check orderEndpoint->put(delivery.'order.id.toString() + "/updateStatus/" + newStatus.toString(), message = (), targetType = json);
+    return ();
 }

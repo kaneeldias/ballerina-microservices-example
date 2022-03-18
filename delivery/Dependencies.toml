@@ -315,7 +315,7 @@ modules = [
 
 [[package]]
 org = "ftgo"
-name = "accounting"
+name = "delivery"
 version = "1.0.0"
 dependencies = [
 	{org = "ballerina", name = "http"},
@@ -327,7 +327,7 @@ dependencies = [
 	{org = "ballerinax", name = "mysql"}
 ]
 modules = [
-	{org = "ftgo", packageName = "accounting", moduleName = "accounting"}
+	{org = "ftgo", packageName = "delivery", moduleName = "delivery"}
 ]
 
 

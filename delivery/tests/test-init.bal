@@ -29,6 +29,9 @@ function databaseInit() returns error? {
 @test:Mock { functionName: "getOrderDetails" }
 test:MockFunction mockGetOrderDetails = new();
 
+@test:Mock { functionName: "updateOrderStatus" }
+test:MockFunction mockUpdateOrderStatus = new();
+
 @test:BeforeSuite
 function setExternalAPICalls() returns error? {
     test:when(mockGetOrderDetails).withArguments(1).thenReturn(<Order>{
@@ -48,5 +51,6 @@ function setExternalAPICalls() returns error? {
     });
 
     test:when(mockGetOrderDetails).thenReturn(error("Order not found."));
+    test:when(mockUpdateOrderStatus).thenReturn(());
 }
 
