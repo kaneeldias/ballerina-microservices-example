@@ -65,6 +65,11 @@ The consumer service has it's own MySQL database for storing relevant consumer d
 ### Order validation
 This service also provides the endpoint `<consumerId>/validate` to validate an order placed by a consumer. This method is currently a dummy method, and does not perform any functional business logic. 
 
+### Running the module
+1. Set up a MySQL database and create the relevant tables using the queries in the `init.sql` file in the `consumer` directory.
+2. Configure the database connection properties in the `Config.toml` file in the `consumer` directory. 
+3. To run the consumer service, simply navigate to the `consumer` directory and execute `bal run` in the terminal. 
+
 ## Restaurant service
 The restaurant service represents a restaurant, with its menu, menu items and prices. A restaurant can contain multiple menus; and a menu can contain multiple menu items.
 
@@ -92,8 +97,40 @@ type MenuItem record {|
 
 This service provides endpoints to perform basic CRUD functionalities with restaurants, menus and menu items through 12 different endpoints.
 
+### Managing tickets
+The restaurant service also provides endpoints to create and view tickets, as well as update their status. A ticket contains the following information:
+```ballerina
+type Ticket record {|
+    int id;
+    Restaurant restaurant;
+    Order 'order;
+    TicketState status;
+|};
+```
+
+A ticket can be in one of the following states:
+* `ACCEPTED`
+* `PREPARING`
+* `READY_FOR_PICKUP`
+* `PICKED_UP`
+
+When a ticket is created, it will initially be in the `ACCEPTED` state. The state of a ticket can be advanced to each state using the three endpoints defined.
+* To `PREPARING`: `restaurant/<restaurantId>/ticket/<ticketId>/mark/preparing`
+* To `READY_FOR_PICKUP`: `restaurant/<restaurantId>/ticket/<ticketId>/mark/ready`
+* To `PICKED_UP`: `restaurant/<restaurantId>/ticket/<ticketId>/mark/pickedUp`
+
+In each of these scenarios, the corresponding state of the `Order` in the `Order Service` is also changed.
+
+![Ticket Sequence](/assets/ticket_sequence.png)
+
+
 ### Data storage and retrieval
 The restaurant service has it's own MySQL database for storing relevant restaurant data. Since this service does not access data outside of it's own module, there is no requirement to make any REST API calls to access the other microservices.
+
+### Running the module
+1. Set up a MySQL database and create the relevant tables using the queries in the `init.sql` file in the `restaurant` directory.
+2. Configure the database connection properties as well as the order endpoint in the `Config.toml` file in the `restaurant` directory. 
+3. To run the consumer service, simply navigate to the `restaurant` directory and execute `bal run` in the terminal. 
 
 ## Order service
 The order service handles orders placed by a consumer for a restaurant. 
