@@ -1,4 +1,4 @@
-# Microservices example in Ballerina
+# FTGO microservices example in Ballerina
 
 ## Overview
 This example is based on the [FTGO application](https://github.com/microservices-patterns/ftgo-application), a sample of an online food delivery application, connecting consumers and restaurants.
@@ -169,7 +169,7 @@ An order can be in one of the following states:
 
 As an order is created, it is initially in the `APPROVAL_PENDING` stage. 
 - As it moves into the `ACCEPTED` stage after the order is confirmed, a ticket has to be created in the restaurant. 
-- As if moves into the `READY_FOR_PICKUP` stage, a delivery has to be scheduled using the `Delivery Service`.
+- As it moves into the `READY_FOR_PICKUP` stage, a delivery has to be scheduled using the `Delivery Service`.
 
 ![Order Sequence](/assets/order_sequence.png)
 
