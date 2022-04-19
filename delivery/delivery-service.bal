@@ -152,7 +152,6 @@ service  on new http:Listener(8084) {
     # + return - `DeliveryScheduled` if the delivery is successfully scheduled.
     #            `InternalError` if an unexpected error occurs
     isolated resource function post delivery/schedule(@http:Payload ScheduleDeliveryRequest request) returns DeliveryScheduled|InternalError{
-        log:printInfo("Schedule delivery request", request = request);
         do {
             Delivery delivery = check scheduleDelivery(request.orderId, request.pickUpAddress, request.deliveryAddress);
             return <DeliveryScheduled>{

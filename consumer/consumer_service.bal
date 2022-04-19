@@ -15,7 +15,6 @@
 // under the License.
 
 import ballerina/http;
-import ballerina/log;
 import ballerina/sql;
 
 # Request body to be used when creating and updating a consumer
@@ -196,7 +195,6 @@ service /consumer on new http:Listener(8080) {
     # + return - `OrderValidated` if the validation was successful.
     #            `InternalError` if an unexpected error occurs
     isolated resource function post [int id]/validate(@http:Payload ValidateOrderRequest request) returns OrderValidated|InternalError {
-        log:printInfo("Validate order request", request = request);
         // Implement logic
         return <OrderValidated>{};
     }

@@ -1,5 +1,4 @@
 import ballerina/test;
-import ballerina/log;
 import ballerina/http;
 
 type DeliveryScheduledRecord record {|
@@ -28,7 +27,6 @@ function scheduleDeliveryTest() returns error? {
     http:Response response = check deliveryClient->post("schedule", scheduleDeliveryRequest);
     test:assertEquals(response.statusCode, 201);
 
-    log:printInfo((check response.getJsonPayload()).toJsonString());
     DeliveryScheduledRecord returnData = check (check response.getJsonPayload()).cloneWithType();
     test:assertEquals(returnData.'order.id, requestPayload.orderId);
     test:assertEquals(returnData.pickUpAddress, requestPayload.pickUpAddress);

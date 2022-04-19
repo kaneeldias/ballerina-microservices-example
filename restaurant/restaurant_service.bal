@@ -611,7 +611,6 @@ service on new http:Listener(8081) {
     # + return - `TicketCreated` if the ticket was successfully created.
     #            `InternalError` if an unexpected error occurs
     isolated resource function post restaurant/[int restaurantId]/ticket(@http:Payload CreateTicketRequest request) returns TicketCreated|InternalError {
-        log:printInfo("Ticket create request", restaurantId = restaurantId, request = request);
         do {
             Ticket generatedTicket = check createTicket(restaurantId, request.orderId);
             return <TicketCreated>{ 
@@ -658,7 +657,6 @@ service on new http:Listener(8081) {
     #            `TicketNotFound` if a ticket with the provided ID cannot be found.
     #            `InternalError` if an unexpected error occurs
     isolated resource function put restaurant/[int restaurantId]/ticket/[int id]/mark/preparing() returns TicketUpdated|TicketNotFound|InternalError {
-        log:printInfo("Update ticket status to preparing request", restaurantId = restaurantId, ticketId = id);
         do {
             Ticket updatedTicket = check updateTicket(id, PREPARING);
             return <TicketUpdated>{

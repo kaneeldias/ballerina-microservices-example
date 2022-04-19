@@ -1,5 +1,4 @@
 import ballerina/test;
-import ballerina/log;
 import ballerina/http;
 
 type ConsumerCreatedRecord record {|
@@ -27,7 +26,6 @@ http:Client consumerClient = check new("http://localhost:8080/consumer/");
     http:Response response = check consumerClient->post("", createConsumerRequest);
     test:assertEquals(response.statusCode, 201);
 
-    log:printInfo((check response.getJsonPayload()).toJsonString());
     ConsumerCreatedRecord returnData = check (check response.getJsonPayload()).cloneWithType();
     test:assertEquals(returnData.name, "Test Name");
     test:assertEquals(returnData.address, "Test address");
@@ -49,7 +47,6 @@ function createConsumerTest2() returns error? {
     http:Response response = check consumerClient->post("", createConsumerRequest);
     test:assertEquals(response.statusCode, 201);
 
-    log:printInfo((check response.getJsonPayload()).toJsonString());
     ConsumerCreatedRecord returnData = check (check response.getJsonPayload()).cloneWithType();
     test:assertEquals(returnData.name, "Test Name");
     test:assertEquals(returnData.address, "Test address");

@@ -1,5 +1,4 @@
 import ballerina/test;
-import ballerina/log;
 import ballerina/http;
 
 type CourierCreatedRecord record {|
@@ -21,7 +20,6 @@ function createCourierTest() returns error? {
     http:Response response = check courierClient->post("", createCourierRequest);
     test:assertEquals(response.statusCode, 201);
 
-    log:printInfo((check response.getJsonPayload()).toJsonString());
     CourierCreatedRecord returnData = check (check response.getJsonPayload()).cloneWithType();
     test:assertEquals(returnData.name, requestPayload.name);
     test:assertEquals(returnData.links.length(), 1);
@@ -52,7 +50,6 @@ function getCourierTest() returns error? {
     http:Response response = check courierClient->post("", createCourierRequest);
     test:assertEquals(response.statusCode, 201);
 
-    log:printInfo((check response.getJsonPayload()).toJsonString());
     CourierCreatedRecord returnData = check (check response.getJsonPayload()).cloneWithType();
 
     response = check courierClient->get(returnData.id.toString());
@@ -75,7 +72,6 @@ function getCourierNegativeTest() returns error? {
     http:Response response = check courierClient->post("", createCourierRequest);
     test:assertEquals(response.statusCode, 201);
 
-    log:printInfo((check response.getJsonPayload()).toJsonString());
     CourierCreatedRecord returnData = check (check response.getJsonPayload()).cloneWithType();
 
     response = check courierClient->get((returnData.id + 1).toString());
