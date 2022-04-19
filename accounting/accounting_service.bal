@@ -31,7 +31,7 @@ type ChargeRequest record {|
 # Response when a consumer is successfully charged
 type ConsumerCharged record {|
     *http:Ok;
-    # The deatils of the generated bill along with the relevant HTTP links
+    # The details of the generated bill along with the relevant HTTP links
     record {|
         *Bill;
         *http:Links;
@@ -41,7 +41,7 @@ type ConsumerCharged record {|
 # Response when a bill is successfully retrieved
 type BillView record {|
     *http:Ok;
-    # The deatils of the generated bill along with the relevant HTTP links
+    # The details of the generated bill along with the relevant HTTP links
     record {|
         *Bill;
         *http:Links;
@@ -87,7 +87,7 @@ service on new http:Listener(8083) {
                 } 
             };
         } on fail error e {
-            log:printError(e.message(), e, e.stackTrace());
+            log:printError("Error in processing charge request", e, e.stackTrace());
             return <InternalError>{ body: { message: e.message() }};
         }
     }
@@ -108,7 +108,7 @@ service on new http:Listener(8083) {
                 } 
             };
         } on fail error e {
-            log:printError(e.message(), e, e.stackTrace());
+            log:printError("Error in retrieving bill.", e, e.stackTrace());
             if e is sql:NoRowsError {
                 return <BillNotFound>{};
             }

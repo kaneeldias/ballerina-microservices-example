@@ -18,14 +18,14 @@
 
 import ballerinax/mysql;
 
-configurable string USER = ?;
-configurable string PASSWORD = ?;
-configurable string HOST = ?;
-configurable int PORT = ?;
+configurable string user = ?;
+configurable string password = ?;
+configurable string host = ?;
+configurable int port = ?;
 
 public function main() returns error? {
 
-    mysql:Client dbClient = check new(host=HOST, user=USER, password=PASSWORD, port=PORT);
+    mysql:Client dbClient = check new(host = host, user = user, password = password, port = port);
 
     // Accounting 
     _ = check dbClient->execute(`CREATE DATABASE IF NOT EXISTS Accounting;`);

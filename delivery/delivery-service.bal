@@ -118,7 +118,7 @@ service  on new http:Listener(8084) {
                 }
             };
         } on fail error e {
-            log:printError(e.message(), e, e.stackTrace());
+            log:printError("Error in creating new courier.", e, e.stackTrace());
             return <InternalError>{ body: { message: e.message() }};
         }
     }

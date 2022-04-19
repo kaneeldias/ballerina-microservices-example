@@ -50,15 +50,15 @@ type MenuItem record {|
     decimal price;
 |};
 
-configurable string USER = ?;
-configurable string PASSWORD = ?;
-configurable string HOST = ?;
-configurable int PORT = ?;
-configurable string DATABASE = ?;
-configurable string ORDER_ENDPOINT = ?;
+configurable string user = ?;
+configurable string password = ?;
+configurable string host = ?;
+configurable int port = ?;
+configurable string database = ?;
+configurable string orderEndpoint = ?;
 
-final mysql:Client dbClient = check new(host=HOST, user=USER, password=PASSWORD, port=PORT, database="Restaurant");
-final http:Client orderEndpoint = check new(ORDER_ENDPOINT);
+final mysql:Client dbClient = check new(host=host, user=user, password=password, port=port, database="Restaurant");
+final http:Client orderEndpointClient = check new(orderEndpoint);
 
 # Creates a new restaurant. This method does not manage the creation of menus under the restaurant.
 #

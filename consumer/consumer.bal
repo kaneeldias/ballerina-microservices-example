@@ -29,13 +29,13 @@ public type Consumer record {|
     string email;
 |};
 
-configurable string USER = ?;
-configurable string PASSWORD = ?;
-configurable string HOST = ?;
-configurable int PORT = ?;
-configurable string DATABASE = ?;
+configurable string user = ?;
+configurable string password = ?;
+configurable string host = ?;
+configurable int port = ?;
+configurable string database = ?;
 
-final mysql:Client dbClient = check new(host=HOST, user=USER, password=PASSWORD, port=PORT, database=DATABASE);
+final mysql:Client dbClient = check new(host = host, user = user, password = password, port = port, database = database);
 
 # Creates a new consumer
 #

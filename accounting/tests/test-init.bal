@@ -3,7 +3,7 @@ import ballerinax/mysql;
 
 @test:BeforeSuite
 function databaseInit() returns error? {
-    mysql:Client dbClient = check new(host = HOST, port = PORT, user = USER, password = PASSWORD);
+    mysql:Client dbClient = check new(host = host, port = port, user = user, password = password);
 
     _ = check dbClient->execute(`CREATE DATABASE IF NOT EXISTS Accounting;`);
     _ = check dbClient->execute(`

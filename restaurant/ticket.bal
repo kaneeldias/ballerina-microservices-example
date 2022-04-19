@@ -103,7 +103,7 @@ isolated function updateTicket(int id, TicketState newStatus) returns Ticket|err
     _ = check dbClient->execute(`UPDATE Tickets SET status=${newStatus} WHERE id=${id}`);
     Ticket ticket = check getTicket(id);
     log:printInfo(ticket.'order.id.toString() + "/updateStatus/" + newStatus.toString());
-    _ = check orderEndpoint->put(ticket.'order.id.toString() + "/updateStatus/" + newStatus.toString(), message = (), targetType = json);
+    _ = check orderEndpointClient->put(ticket.'order.id.toString() + "/updateStatus/" + newStatus.toString(), message = (), targetType = json);
     return ticket;
 }
 
@@ -112,7 +112,7 @@ isolated function updateTicket(int id, TicketState newStatus) returns Ticket|err
 # + orderId - The ID of the order for which the detailes are required
 # + return - The details of the order if the retrieval was successful. An error if unsuccessful
 isolated function getOrderDetails(int orderId) returns Order|error {
-    Order 'order = check orderEndpoint->get(orderId.toString());
+    Order 'order = check orderEndpointClient->get(orderId.toString());
     OrderItem[] orderItems = [];
 
     foreach OrderItem orderItem in 'order.orderItems {

@@ -49,7 +49,8 @@ isolated function getCourier(int id) returns Courier|error {
     return check dbClient->queryRow(`SELECT id, name FROM Couriers WHERE id=${id}`);
 }
 
-# Determines the most suitable courier to carry out an order. At the moment, this method simply selects a random courier from the list of available couriers
+# Determines the most suitable courier to carry out an order. 
+# At the moment, this method simply selects a random courier from the list of available couriers
 #
 # + pickUpAddres - The address from which the order should be picked up
 # + return - The details of the courier if the search was successful. An error if unsuccessful

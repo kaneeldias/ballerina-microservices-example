@@ -4,7 +4,7 @@ import ballerinax/mysql;
 
 @test:BeforeSuite
 function databaseInit() returns error? {
-    mysql:Client dbClient = check new(host = HOST, port = PORT, user = USER, password = PASSWORD);
+    mysql:Client dbClient = check new(host = host, port = port, user = user, password = password);
 
     _ = check dbClient->execute(`CREATE DATABASE IF NOT EXISTS Orders;`);
     _ = check dbClient->execute(`
@@ -40,7 +40,7 @@ test:MockFunction mockGetMenuItem = new();
 
 public client class MockConsumersEndpointClient {
 
-    remote function get(@untainted string path, map<string|string[]>? headers = (), http:TargetType targetType = http:Response) returns @tainted http:Response| http:PayloadType | http:ClientError {
+    remote function get(string path, map<string|string[]>? headers = (), http:TargetType targetType = http:Response) returns http:Response| http:PayloadType | http:ClientError {
         http:Response response = new;
         response.statusCode = 200;
         response.setJsonPayload({
